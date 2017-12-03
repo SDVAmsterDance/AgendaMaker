@@ -1,0 +1,278 @@
+#:kivy 1.1.0
+#:import lv kivy.uix.listview
+#:import la kivy.adapters.listadapter
+
+
+<Manager>:
+    id: screen_manager
+
+    main_screen: main_screen
+
+    MainScreen:
+        id: main_screen
+        name: 'main_screen'
+        manager: screen_manager
+
+<Popup>:
+    title: "Select File"
+    size_hint: 0.9, 0.9
+
+<Row@BoxLayout>:
+    canvas.before:
+        Color:
+            rgba: .5, 0.5, 0.5, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    value: ''
+    Label:
+        text: root.value
+
+<MainScreen>:
+#    canvas:
+#        Rectangle:
+#            source: "../test.png"
+#            size: self.size
+
+    BoxLayout:
+        orientation: 'horizontal'
+        Accordion:
+            size_hint_x: None
+            width: 300
+            orientation: 'vertical'
+            AccordionItem:
+                collapse:True
+                title: 'Calendars'
+                GridLayout:
+                    cols:2
+                    row_force_default: True
+                    row_default_height: 30
+                    Label:
+                        text_size: self.size
+                        halign: 'left'
+                        text: "Activiteiten"
+                    TextInput:
+                        id: internal_activities
+                        hint_text:"Google Calendar ID"
+                    Label:
+                        text_size: self.size
+                        halign: 'left'
+                        text: "Activiteiten Extern"
+                    TextInput:
+                        id: external_activities
+                        hint_text:"Google Calendar ID"
+            AccordionItem:
+                collapse:False
+                title: 'Activiteiten'
+                BoxLayout:
+                    orientation: 'vertical'
+                    TextInputLineRow:
+                        FormLabel:
+                            size_hint_x: None
+                            width: 100
+                            text_size: self.size
+                            halign: 'left'
+                            text: "Titel"
+                        TextInput:
+                            id: activity_title
+                    TextInputMultiLineRow:
+                        FormLabel:
+                            size_hint_x: None
+                            width: 100
+                            text_size: self.size
+                            halign: 'left'
+                            valign: 'top'
+                            text: "Beschrijving"
+                        TextInput:
+                            id: activity_description
+                            height: 100
+                    TextInputLineRow:
+                        FormLabel:
+                            text_size: self.size
+                            halign: 'left'
+                            text: "Prijs"
+                        TextInput:
+                            id: activity_price
+                            text: ''
+                    TextInputLineRow:
+                        FormLabel:
+                            text_size: self.size
+                            halign: 'left'
+                            text: "Locatie"
+                        TextInput:
+                            id: activity_location
+                            text: 'USC Studio 2'
+                    TextInputLineRow:
+                        FormLabel:
+                            text_size: self.size
+                            halign: 'left'
+                            text: "Begin datum"
+                        TextInput:
+                            id: activity_start_date
+                            hint_text:"YYYY-MM-DD"
+                    TextInputLineRow:
+                        FormLabel:
+                            text_size: self.size
+                            halign: 'left'
+                            text: "Begin tijd"
+                        TextInput:
+                            id: activity_start_time
+                            hint_text:"HH:MM"
+                    TextInputLineRow:
+                        FormLabel:
+                            text_size: self.size
+                            halign: 'left'
+                            text: "Eind datum"
+                        TextInput:
+                            id: activity_end_date
+                            hint_text:"YYYY-MM-DD"
+                    TextInputLineRow:
+                        FormLabel:
+                            text_size: self.size
+                            halign: 'left'
+                            text: "Eind tijd"
+                        TextInput:
+                            id: activity_end_time
+                            hint_text:"HH:MM"
+                    Widget:
+            AccordionItem:
+                collapse:True
+                title: 'Verjaardagen'
+
+        Widget:
+            id:agenda_image
+            canvas.after:
+                Rectangle:
+                    pos: 310,50
+                    source: "../test.gif"
+                    size: 877, 620
+
+#        Image:
+#            id: agenda_image
+#            size_hint_y:250
+#            source: "../test.png"
+
+
+<FormLabel@Label>
+    size_hint_x: None
+    width: 100
+    text_size: self.size
+    halign: 'left'
+    valign: 'top'
+    padding_y: 7
+
+<TextInputLineRow@BoxLayout>
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: 40
+    padding: dp(10), dp(10), 0, 0
+
+<TextInputMultiLineRow@BoxLayout>
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: 120
+    padding: dp(10), dp(10), 0, 0
+
+<ListItemButton>:
+    selected_color: .88, .88, .88, 1
+    deselected_color : .6, .6, .6, 1
+
+<LoadDialog>:
+    drives_list: drives_list
+    filechooser: filechooser
+
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+
+        BoxLayout:
+            orientation: "horizontal"
+
+            ListView:
+                id: drives_list
+                size_hint: .2, 1
+                adapter:
+                    la.ListAdapter(data=root.get_quick_links(), selection_mode='single', allow_empty_selection=False, cls=lv.ListItemButton)
+
+            BoxLayout:
+                orientation: "vertical"
+                BoxLayout:
+                    size_hint_y: None
+                    height: 40
+                    spacing: dp(8)
+                    TextInput:
+                        id: text_box_path
+                        multiline: False
+                        size_hint_x: 0.6
+                        hint_text: 'new value'
+                        padding: dp(10), dp(10), 0, 0
+                        on_text_validate: root.go_to_directory(text_box_path.text)
+                    Button:
+                        size_hint:0.2,1
+                        text: 'Go'
+                        on_release: root.go_to_directory(text_box_path.text)
+
+                StackLayout:
+                    size_hint_y: None
+                    orientation: 'lr-tb'
+                    height: 40
+
+                    ToggleButton:
+                        size_hint: .2, 1
+                        text: 'List'
+                        state: 'down'
+                        group: 'filechooser'
+                        on_release: filechooser.view_mode = 'list'
+
+                    ToggleButton:
+                        size_hint: .2, 1
+                        text: 'Icon'
+                        group: 'filechooser'
+                        on_release: filechooser.view_mode = 'icon'
+
+                FileChooser:
+                    id: filechooser
+                    filter_dirs: True
+                    filters: [root.show_item]
+                    on_entries_cleared:text_box_path.text = filechooser.path
+
+                    FileChooserListLayout
+                    FileChooserIconLayout
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Select File"
+                on_release: root.load(filechooser.path, filechooser.selection)
+
+
+<MessagePopup@Popup>:
+    size_hint: 0.6, 0.3
+
+<WarningPopup>:
+    id: warning_popup
+    size_hint: 0.3, 0.5
+
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        Label:
+            id: warning_popup_text
+            size_hint_y: 1
+            text: "A warning"
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+
