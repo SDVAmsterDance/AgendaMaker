@@ -18,3 +18,8 @@ class Activity:
                                                       self.descriptor,
                                                       self.location,
                                                       self.price)
+
+    def is_multi_day(self) -> bool:
+        if (self.end_date - self.begin_date).days > 0:
+            return True
+        return False

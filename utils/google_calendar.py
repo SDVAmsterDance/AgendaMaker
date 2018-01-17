@@ -4,6 +4,7 @@ from typing import List
 import httplib2
 import os
 
+import re
 from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
@@ -100,6 +101,12 @@ def get_events(calendarId: str, start_date: datetime.date, end_date: datetime.da
         end_date = end_dateTime.date()
         end_time = end_dateTime.strftime('%H:%M')
         description = event.get('description', "").strip()
+        m = re.match('\[.*\]', description)
+        if m:
+            print(m.group(0))
+            for g in m.groups(0):
+                print("!",g)
+
         location = event.get('location', "")
         title = event['summary'].strip()
         activity = Activity(start_time, end_time, start_date, end_date, title, description, location)
