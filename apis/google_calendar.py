@@ -1,19 +1,16 @@
-from pprint import pprint
+import datetime
+import os
+import re
 from typing import List
 
+import dateutil.parser
 import httplib2
-import os
-
-import re
 from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
-import dateutil.parser
 
-import datetime
-
-from utils.activity import Activity
+from agenda.activity import Activity
 
 try:
     import argparse

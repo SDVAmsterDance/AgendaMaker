@@ -1,4 +1,4 @@
-from draw_agenda import *
+from agenda.draw_agenda import *
 
 draw = DrawAgenda()
 

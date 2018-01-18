@@ -23,3 +23,6 @@ class Activity:
         if (self.end_date - self.begin_date).days > 0:
             return True
         return False
+
+    def draw(self, day: int, week: int, month: int):
+        pass

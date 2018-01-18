@@ -1,14 +1,14 @@
+import datetime
 import math
-from textwrap import wrap
 
 from PIL import Image, ImageDraw
-import style
-from utils.activity import Activity
-from utils.activity_type import ActivityType
-from utils.google_calendar import get_events
-from utils.weekday import Weekday
-import utils.text as text
-import datetime
+
+import agenda.utils.text as text
+from agenda.activity import Activity
+from agenda.activity_type import ActivityType
+from agenda.utils import style
+from agenda.weekday import Weekday
+from apis.google_calendar import get_events
 
 
 class DrawAgenda:
