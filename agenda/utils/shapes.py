@@ -5,12 +5,15 @@ from PIL import ImageDraw
 from agenda.utils import style, text
 
 
-def internal_card(draw: ImageDraw, x0: Union[int, float], x1: Union[int, float], x_min: Union[int, float],
-                  x_max: Union[int, float], y0: Union[int, float], y1: Union[int, float], y_min: Union[int, float],
-                  background_color: Tuple[int, int, int], date_background_color: Tuple[int, int, int],
-                  text_color: Tuple[int, int, int], title_color: Tuple[int, int, int],
-                  date_text_color: Tuple[int, int, int],
+def internal_card(draw: ImageDraw, x0: Union[int, float], x1: Union[int, float], y0: Union[int, float],
+                  y1: Union[int, float], background_color: Tuple[int, int, int],
+                  date_background_color: Tuple[int, int, int], text_color: Tuple[int, int, int],
+                  title_color: Tuple[int, int, int], date_text_color: Tuple[int, int, int],
                   title: str = "", date: str = "", details: str = "") -> None:
+    y_min = style.scale * 10
+    x_min = style.scale * 20
+    x_max = style.scale * 35
+
     # black card
     draw.polygon([(x0 - x_min, y0 - y_min),
                   (x1 + x_max, y0 - y_min),
@@ -49,13 +52,14 @@ def internal_card(draw: ImageDraw, x0: Union[int, float], x1: Union[int, float],
                   fill=date_text_color)
 
 
-def external_card(draw: ImageDraw, x0: Union[int, float], x1: Union[int, float], x_min: Union[int, float],
-                  x_max: Union[int, float], y0: Union[int, float], y1: Union[int, float], y_min: Union[int, float],
-                  background_color: Tuple[int, int, int], date_background_color: Tuple[int, int, int],
-                  text_color: Tuple[int, int, int], title_color: Tuple[int, int, int],
-                  date_text_color: Tuple[int, int, int],
+def external_card(draw: ImageDraw, x0: Union[int, float], x1: Union[int, float], y0: Union[int, float],
+                  y1: Union[int, float], background_color: Tuple[int, int, int],
+                  date_background_color: Tuple[int, int, int], text_color: Tuple[int, int, int],
+                  title_color: Tuple[int, int, int], date_text_color: Tuple[int, int, int],
                   title: str = "", date: str = "", details: str = ""):
-
+    y_min = style.scale * 10
+    x_min = style.scale * 20
+    x_max = style.scale * 35
     card_horizontal_middle = (y1 + y0) / 2
     half_card_height = card_horizontal_middle - (y0 - y_min)
 

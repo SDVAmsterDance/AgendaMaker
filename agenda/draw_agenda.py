@@ -164,16 +164,7 @@ class DrawAgenda:
                 self.draw_external_activity(days % 7, int(math.floor(days / 7)), month, event)
 
     def draw_internal_activity(self, day: int, week: int, month: int, activity: Activity) -> None:
-        margin = style.scale * 40
-        y_min = style.scale * 10
-        x_min = style.scale * 20
-        x_max = style.scale * 35
-        row_height = (self.height - self.calendar_start_y) / 6
-        x0 = (day * (self.width / 7)) + margin
-        x1 = ((day + 1) * (self.width / 7)) - margin
-        block_width = x1 - x0
-        y0 = self.calendar_start_y + week * row_height
-        y1 = y0 + block_width
+        x0, x1, y0, y1 = self.calculate_card_size(day, week, margin=style.scale * 40)
 
         background_color = style.color['black']
         title_color = style.color['white']
@@ -187,21 +178,12 @@ class DrawAgenda:
             text_color = style.color['lred']
 
         details = "{}-{}\n{}".format(activity.begin_time, activity.end_time, activity.price)
-        shapes.internal_card(self.draw, x0, x1, x_min, x_max, y0, y1, y_min,
+        shapes.internal_card(self.draw, x0, x1, y0, y1,
                              background_color, date_background_color, text_color, title_color, date_text_color,
                              title=activity.name, date=str(activity.begin_date.day), details=details)
 
     def draw_external_activity(self, day: int, week: int, month: int, activity: Activity) -> None:
-        margin = style.scale * 40
-        y_min = style.scale * 10
-        x_min = style.scale * 20
-        x_max = style.scale * 35
-        row_height = (self.height - self.calendar_start_y) / 6
-        x0 = (day * (self.width / 7)) + margin
-        x1 = ((day + 1) * (self.width / 7)) - margin
-        block_width = x1 - x0
-        y0 = self.calendar_start_y + week * row_height
-        y1 = y0 + block_width
+        x0, x1, y0, y1 = self.calculate_card_size(day, week, margin=style.scale * 40)
 
         background_color = style.color['dred']
         title_color = style.color['lred']
@@ -215,9 +197,18 @@ class DrawAgenda:
             text_color = style.color['lred']
 
         details = "{}-{}\n{}".format(activity.begin_time, activity.end_time, activity.price)
-        shapes.external_card(self.draw, x0, x1, x_min, x_max, y0, y1, y_min,
+        shapes.external_card(self.draw, x0, x1, y0, y1,
                              background_color, date_background_color, text_color, title_color, date_text_color,
                              title=activity.name, date=str(activity.begin_date.day), details=details)
+
+    def calculate_card_size(self, day, week, margin):
+        row_height = (self.height - self.calendar_start_y) / 6
+        x0 = (day * (self.width / 7)) + margin
+        x1 = ((day + 1) * (self.width / 7)) - margin
+        block_width = x1 - x0
+        y0 = self.calendar_start_y + week * row_height
+        y1 = y0 + block_width
+        return x0, x1, y0, y1
 
     def draw_debug(self):
         # header
