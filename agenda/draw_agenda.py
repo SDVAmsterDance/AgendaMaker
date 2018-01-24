@@ -214,7 +214,8 @@ class DrawAgenda:
         details = "{}-{}\n{}".format(activity.begin_time, activity.end_time, activity.price)
         shapes.internal_card(self.draw, x0, x1, y0, y1,
                              background_color, date_background_color, text_color, title_color, date_text_color,
-                             title=activity.name, date=(str(activity.begin_date.day), str(activity.end_date.day)), details=details)
+                             title=activity.name, date=(str(activity.begin_date.day), str(activity.end_date.day)), details=details,
+                             start=start, width=self.width)
 
     def draw_external_activity(self, start: Tuple[int, int], month: int, activity: Activity,
                                end: Tuple[int, int] = None) -> None:

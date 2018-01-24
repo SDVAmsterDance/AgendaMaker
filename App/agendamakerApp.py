@@ -15,7 +15,11 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.widget import Widget
 from kivy.utils import platform
 
-from App.utils.persist_properties import PersistProperties
+try:
+    from utils.persist_properties import PersistProperties
+except:
+    from App.utils.persist_properties import PersistProperties
+
 from kivy.config import Config
 Config.set('graphics', 'width', '1200')
 Config.set('graphics', 'height', '720')
@@ -33,8 +37,10 @@ def get_drives():
     drives = drives.split('\000')[:-1]
     return drives
 
+
 class MessagePopup(Popup):
     pass
+
 
 class WarningPopup(FloatLayout):
     cancel = ObjectProperty(None)
@@ -42,6 +48,7 @@ class WarningPopup(FloatLayout):
     def __init__(self, message=None, **kwargs):
         super(WarningPopup, self).__init__(**kwargs)
         self.ids.warning_popup_text.text = message
+
 
 class LoadDialog(FloatLayout):
     load = ObjectProperty(None)
@@ -153,7 +160,6 @@ class AgendaMakerApp(App):
         print(self.persist)
         print(self.root.main_screen)
         self.root.main_screen.persist = self.persist
-
 
 
 class Manager(ScreenManager):
