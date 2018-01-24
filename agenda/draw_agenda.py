@@ -167,7 +167,8 @@ class DrawAgenda:
                     self.draw_internal_activity(start=(start_weekday_num, start_week), end=(end_weekday_num, end_week),
                                                 month=month, activity=event)
                 else:
-                    self.draw_external_activity(start=(start_weekday_num, start_week), month=month, activity=event)
+                    self.draw_external_activity(start=(start_weekday_num, start_week), end=(end_weekday_num, end_week),
+                                                month=month, activity=event)
 
             else:
                 day = (event.begin_date - start_date).days
@@ -212,9 +213,17 @@ class DrawAgenda:
     def draw_external_activity(self, start: Tuple[int, int], month: int, activity: Activity,
                                end: Tuple[int, int] = None) -> None:
         start_day, start_week = start
-        if end:
-            end_day, end_week = end
         x0, x1, y0, y1 = self.calculate_card_size((start_day, start_week), margin=style.scale * 40)
+        if end:
+            print(activity.name)
+            end_day, end_week = end
+            if end_week == start_week:
+                x0, x1, y0, y1 = self.calculate_card_size(start=(start_day, start_week), end=(end_day, end_week),
+                                                          margin=style.scale * 40)
+                pass
+            else:
+                # multiple weeks, harder
+                pass
 
         background_color = style.color['dred']
         title_color = style.color['lred']
