@@ -66,9 +66,10 @@ def get_events(calendarId: str, start_date: datetime.date, end_date: datetime.da
     service = discovery.build('calendar', 'v3', http=http)
 
     print('Getting the events')
-    now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
+    now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
     print(now)
-    start_date = datetime.datetime.combine(start_date, datetime.datetime.min.time()).isoformat() + 'Z'
+    start_date = datetime.datetime.combine(
+        start_date, datetime.datetime.min.time()).isoformat() + 'Z'
     end_date = datetime.datetime.combine(end_date, datetime.datetime.min.time()).isoformat() + 'Z'
 
     eventsResult = service.events().list(
@@ -91,7 +92,8 @@ def get_events(calendarId: str, start_date: datetime.date, end_date: datetime.da
         print('No events found.')
     for event in events:
         # pprint(event)
-        start_dateTime = dateutil.parser.parse(event['start'].get('dateTime', event['start'].get('date')))
+        start_dateTime = dateutil.parser.parse(
+            event['start'].get('dateTime', event['start'].get('date')))
         start_date = start_dateTime.date()
         start_time = start_dateTime.strftime('%H:%M')
         end_dateTime = dateutil.parser.parse(event['end'].get('dateTime', event['end'].get('date')))
@@ -102,11 +104,12 @@ def get_events(calendarId: str, start_date: datetime.date, end_date: datetime.da
         if m:
             print(m.group(0))
             for g in m.groups(0):
-                print("!",g)
+                print("!", g)
 
         location = event.get('location', "")
         title = event['summary'].strip()
-        activity = Activity(start_time, end_time, start_date, end_date, title, description, location)
+        activity = Activity(start_time, end_time, start_date,
+                            end_date, title, description, location)
         activities.append(activity)
         # start = event['start'].get('dateTime', event['start'].get('date'))
         # # print(start, event['summary'])
@@ -126,4 +129,3 @@ def get_calendars():
         page_token = calendar_list.get('nextPageToken')
         if not page_token:
             break
-
