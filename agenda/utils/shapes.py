@@ -31,24 +31,44 @@ def internal_card(draw: ImageDraw, x0: Union[int, float], x1: Union[int, float],
     title = text.wrap(string=title, font=font, width=(x1 + X_MIN) - (x0 - X_MIN))
 
     draw.multiline_text((x0 - X_MIN, y), title, font=font, fill=title_color, spacing=spacing)
-    y += 2 * (style.scale * 14)  # 14 because that seems to be the line height
     font = style.font(size=style.scale * 13)
-    details = text.wrap(string=details, font=font, width=(x1 + X_MIN) - (x0 - X_MIN))
-    draw.multiline_text((x0 - X_MIN, y), details, font=font, fill=text_color, spacing=spacing)
+    y += 2 * (style.scale * 14)  # 14 because that seems to be the line height
 
-    # red date
-    if date:
-        if date[0] == date[1]:
-            # One day events
-            draw_date(draw, date[0], x1, y0, y1, date_background_color, date_text_color, font)
-        else:
-            # Multi day events
-            start_day = start[0]
-            dates = [str(dat) for dat in np.arange(int(date[0]), int(date[1]) + 1, 1)]
-            margin = style.scale * 40
-            for i, date in enumerate(dates):
-                x = ((start_day + 1 + i) * (width / 7)) - margin
-                draw_date(draw, date, x, y0, y1, date_background_color, date_text_color, font)
+    # Single day vs multi day events
+    if date[0] == date[1]:
+        # Draw date box
+        draw_date(draw, date[0], x1, y0, y1, date_background_color, date_text_color, font)
+
+        # Draw event details
+        draw.multiline_text((x0 - X_MIN, y), details, font=font, fill=text_color, spacing=spacing)
+    else:
+        # Draw date boxes on every day of the event
+        start_day = start[0]
+        dates = [str(dat) for dat in np.arange(int(date[0]), int(date[1]) + 1, 1)]
+        margin = style.scale * 40
+        for i, date in enumerate(dates):
+            x = ((start_day + 1 + i) * (width / 7)) - margin
+            draw_date(draw, date, x, y0, y1, date_background_color, date_text_color, font)
+
+        # Draw event details; display end time at the left side of the event box
+        # Split string to display the start and end time at different positions
+        location = ""
+        start_time, end_time = details.split("-")
+        start_time = "{}-...".format(start_time)
+        try:
+            end_time, price = end_time.split('\n')
+        except:
+            end_time, location, price = end_time.split('\n')
+        end_time = "...-{}".format(end_time)
+
+        # Draw the details in the event box
+        draw.multiline_text((x0 - X_MIN, y), start_time, font=font, fill=text_color, spacing=spacing)
+        draw.multiline_text((x1 - X_MIN, y), end_time, font=font, fill=text_color, spacing=spacing)
+        if location:
+            y += (style.scale * 10)
+            draw.multiline_text((x0 - X_MIN, y), price, font=font, fill=text_color, spacing=spacing)
+        y += (style.scale * 10)
+        draw.multiline_text((x0 - X_MIN, y), price, font=font, fill=text_color, spacing=spacing)
 
 
 def draw_date(draw: ImageDraw, date: str, x: Union[int, float], y0: Union[int, float],

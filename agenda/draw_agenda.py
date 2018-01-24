@@ -191,11 +191,9 @@ class DrawAgenda:
 
         if end:
             end_day, end_week = end
-
             if end_week == start_week:
                 x0, x1, y0, y1 = self.calculate_card_size(start=(start_day, start_week), end=(end_day, end_week),
                                                           margin=style.scale * 40)
-                pass
             else:
                 # multiple weeks, harder
                 pass
@@ -211,7 +209,10 @@ class DrawAgenda:
             date_background_color = style.color['lred']
             text_color = style.color['lred']
 
-        details = "{}-{}\n{}".format(activity.begin_time, activity.end_time, activity.price)
+        if activity.location:
+            details = "{}-{}\n{}\n{}".format(activity.begin_time, activity.end_time, activity.location, activity.price)
+        else:
+            details = "{}-{}\n{}".format(activity.begin_time, activity.end_time, activity.price)
         shapes.internal_card(self.draw, x0, x1, y0, y1,
                              background_color, date_background_color, text_color, title_color, date_text_color,
                              title=activity.name, date=(str(activity.begin_date.day), str(activity.end_date.day)), details=details,
