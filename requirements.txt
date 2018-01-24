@@ -1,1 +1,2 @@
 google-api-python-client==1.6.4
+Kivy==1.10.0
