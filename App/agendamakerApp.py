@@ -12,6 +12,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.utils import platform
 
 from agenda.draw_agenda import DrawAgenda
+from apis.google_calendar import get_calendars
 
 try:
     from App.utils.persist_properties import PersistProperties
@@ -138,9 +139,14 @@ class MainScreen(Screen):
         self.persist.set_property("internal_activities", self.ids.internal_activities.text)
         self.persist.set_property("external_activities", self.ids.external_activities.text)
         self.persist.set_property("birthdays", self.ids.birthdays.text)
-        draw = DrawAgenda()
+        internal_activities = [x.strip() for x in self.ids.internal_activities.text.split(",")]
+        external_activities = [x.strip() for x in self.ids.external_activities.text.split(",")]
+        draw = DrawAgenda(internal_activities=internal_activities, external_activities=external_activities)
         draw.draw_agenda()
         self.ids.agenda_image.reload()
+
+    def get_calendars(self):
+        get_calendars()
 
 
 class AgendaMakerApp(App):

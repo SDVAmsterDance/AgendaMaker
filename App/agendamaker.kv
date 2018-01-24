@@ -44,31 +44,36 @@
                     text: 'Make Calendar'
                     on_release: root.make_calendar()
 
+                Button:
+                    id: make_calendar_button
+                    text: 'Get Calendars'
+                    on_release: root.get_calendars()
 
-            GridLayout:
-                cols:2
-                row_force_default: True
-                row_default_height: 30
+
+
+            BoxLayout:
                 padding: 10
+                orientation:'vertical'
                 Label:
                     text_size: self.size
                     halign: 'left'
                     text: "Activiteiten"
-                TextInput:
+                CalendarId:
                     id: internal_activities
+                    multiline:True
                     hint_text:"Google Calendar ID"
                 Label:
                     text_size: self.size
                     halign: 'left'
                     text: "Activiteiten Extern"
-                TextInput:
+                CalendarId:
                     id: external_activities
                     hint_text:"Google Calendar ID"
                 Label:
                     text_size: self.size
                     halign: 'left'
                     text: "Verjaardagen"
-                TextInput:
+                CalendarId:
                     id: birthdays
                     hint_text:"Google Calendar ID"
 
@@ -201,3 +206,8 @@
             Button:
                 text: "Cancel"
                 on_release: root.cancel()
+
+<CalendarId@TextInput>:
+    multiline:True
+    size_hint_y: None
+    height: 120

@@ -21,13 +21,16 @@ class DrawAgenda:
     calendar_start_y = header_height + weekdays_height
     debug = False
 
-    def __init__(self):
+    def __init__(self, internal_activities, external_activities):
         self.width *= style.scale
         self.height *= style.scale
         self.header_height *= style.scale
         self.weekdays_height *= style.scale
         self.font_size *= style.scale
         self.calendar_start_y = self.header_height + self.weekdays_height
+        self.internal_activities = internal_activities
+        self.external_activities = external_activities
+        print(self.internal_activities)
 
         self.im = Image.new("RGB", (self.width, self.height), "white")
         self.draw = ImageDraw.Draw(self.im)
@@ -144,8 +147,8 @@ class DrawAgenda:
                            fill=style.color["black"])
 
     def draw_activities(self, month, start_date, end_date):
-        internal_events_calendarIDs = ['p68brdnv6bp4q8qu0g8o1gv914@group.calendar.google.com']
-        external_events_calendarIDs = ['k37nshvnqob4c484497713cboc@group.calendar.google.com']
+        internal_events_calendarIDs = self.internal_activities
+        external_events_calendarIDs = self.external_activities
         for calendarID in internal_events_calendarIDs:
             self.draw_calendar_activities(calendarID, month, start_date,
                                           end_date, activity_type=ActivityType.INTERN)
