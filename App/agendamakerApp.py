@@ -135,6 +135,9 @@ class MainScreen(Screen):
 
     def make_calendar(self):
         print("Pressed the button")
+        self.persist.set_property("internal_activities", self.ids.internal_activities.text)
+        self.persist.set_property("external_activities", self.ids.external_activities.text)
+        self.persist.set_property("birthdays", self.ids.birthdays.text)
         draw = DrawAgenda()
         draw.draw_agenda()
         self.ids.agenda_image.reload()
@@ -150,9 +153,10 @@ class AgendaMakerApp(App):
 
     def on_start(self, **kwargs):
         self.persist = PersistProperties()
-        print(self.persist)
-        print(self.root.main_screen)
         self.root.main_screen.persist = self.persist
+        self.root.main_screen.ids.internal_activities.text = self.persist.internal_activities
+        self.root.main_screen.ids.external_activities.text = self.persist.external_activities
+        self.root.main_screen.ids.birthdays.text = self.persist.birthdays
 
 
 class Manager(ScreenManager):

@@ -44,114 +44,35 @@
                     text: 'Make Calendar'
                     on_release: root.make_calendar()
 
-            Accordion:
-                orientation: 'vertical'
-                AccordionItem:
-                    collapse:False
-                    title: 'Calendars'
-                    GridLayout:
-                        cols:2
-                        row_force_default: True
-                        row_default_height: 30
-                        Label:
-                            text_size: self.size
-                            halign: 'left'
-                            text: "Activiteiten"
-                        TextInput:
-                            id: internal_activities
-                            hint_text:"Google Calendar ID"
-                        Label:
-                            text_size: self.size
-                            halign: 'left'
-                            text: "Activiteiten Extern"
-                        TextInput:
-                            id: external_activities
-                            hint_text:"Google Calendar ID"
-                        Label:
-                            text_size: self.size
-                            halign: 'left'
-                            text: "Verjaardagen"
-                        TextInput:
-                            id: external_activities
-                            hint_text:"Google Calendar ID"
 
-                AccordionItem:
-                    collapse:True
-                    title: 'Activiteiten'
-                    BoxLayout:
-                        orientation: 'vertical'
-                        TextInputLineRow:
-                            FormLabel:
-                                size_hint_x: None
-                                width: 100
-                                text_size: self.size
-                                halign: 'left'
-                                text: "Titel"
-                            TextInput:
-                                id: activity_title
-                        TextInputMultiLineRow:
-                            FormLabel:
-                                size_hint_x: None
-                                width: 100
-                                text_size: self.size
-                                halign: 'left'
-                                valign: 'top'
-                                text: "Beschrijving"
-                            TextInput:
-                                id: activity_description
-                                height: 100
-                        TextInputLineRow:
-                            FormLabel:
-                                text_size: self.size
-                                halign: 'left'
-                                text: "Prijs"
-                            TextInput:
-                                id: activity_price
-                                text: ''
-                        TextInputLineRow:
-                            FormLabel:
-                                text_size: self.size
-                                halign: 'left'
-                                text: "Locatie"
-                            TextInput:
-                                id: activity_location
-                                text: 'USC Studio 2'
-                        TextInputLineRow:
-                            FormLabel:
-                                text_size: self.size
-                                halign: 'left'
-                                text: "Begin datum"
-                            TextInput:
-                                id: activity_start_date
-                                hint_text:"YYYY-MM-DD"
-                        TextInputLineRow:
-                            FormLabel:
-                                text_size: self.size
-                                halign: 'left'
-                                text: "Begin tijd"
-                            TextInput:
-                                id: activity_start_time
-                                hint_text:"HH:MM"
-                        TextInputLineRow:
-                            FormLabel:
-                                text_size: self.size
-                                halign: 'left'
-                                text: "Eind datum"
-                            TextInput:
-                                id: activity_end_date
-                                hint_text:"YYYY-MM-DD"
-                        TextInputLineRow:
-                            FormLabel:
-                                text_size: self.size
-                                halign: 'left'
-                                text: "Eind tijd"
-                            TextInput:
-                                id: activity_end_time
-                                hint_text:"HH:MM"
-                        Widget:
-                AccordionItem:
-                    collapse:True
-                    title: 'Verjaardagen'
+            GridLayout:
+                cols:2
+                row_force_default: True
+                row_default_height: 30
+                padding: 10
+                Label:
+                    text_size: self.size
+                    halign: 'left'
+                    text: "Activiteiten"
+                TextInput:
+                    id: internal_activities
+                    hint_text:"Google Calendar ID"
+                Label:
+                    text_size: self.size
+                    halign: 'left'
+                    text: "Activiteiten Extern"
+                TextInput:
+                    id: external_activities
+                    hint_text:"Google Calendar ID"
+                Label:
+                    text_size: self.size
+                    halign: 'left'
+                    text: "Verjaardagen"
+                TextInput:
+                    id: birthdays
+                    hint_text:"Google Calendar ID"
+
+
 
         Image:
             id:agenda_image
