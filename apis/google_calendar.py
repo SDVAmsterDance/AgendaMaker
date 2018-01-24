@@ -78,16 +78,6 @@ def get_events(calendarId: str, start_date: datetime.date, end_date: datetime.da
     events = eventsResult.get('items', [])
 
     activities = []
-    # begin_time = "21:00"
-    # end_time = "23:00"
-    # begin_date = datetime.date(2017, 11, 7)
-    # end_date = datetime.date(2017, 11, 1)
-    # descriptor = "Descriptor"
-    # location = "USC studio 2"
-    # price = "€0/€3"
-    #
-    # activity = Activity(begin_time, end_time, begin_date, end_date, name, descriptor, location, price)
-    # activities.append(activity)
     if not events:
         print('No events found.')
     for event in events:
