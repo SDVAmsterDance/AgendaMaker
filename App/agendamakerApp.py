@@ -1,22 +1,25 @@
 import logging
 import os
 import win32api
-from io import StringIO
 from os.path import expanduser
 from os.path import join, isdir
 
 from kivy.app import App
 from kivy.properties import ObjectProperty
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.image import Image
-from kivy.core.image.img_pygame import ImageLoaderPygame
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.uix.widget import Widget
 from kivy.utils import platform
 
-from App.utils.persist_properties import PersistProperties
+from agenda.draw_agenda import DrawAgenda
+
+try:
+    from App.utils.persist_properties import PersistProperties
+except:
+    from utils.persist_properties import PersistProperties
+
 from kivy.config import Config
+
 Config.set('graphics', 'width', '1200')
 Config.set('graphics', 'height', '720')
 
@@ -33,8 +36,10 @@ def get_drives():
     drives = drives.split('\000')[:-1]
     return drives
 
+
 class MessagePopup(Popup):
     pass
+
 
 class WarningPopup(FloatLayout):
     cancel = ObjectProperty(None)
@@ -42,6 +47,7 @@ class WarningPopup(FloatLayout):
     def __init__(self, message=None, **kwargs):
         super(WarningPopup, self).__init__(**kwargs)
         self.ids.warning_popup_text.text = message
+
 
 class LoadDialog(FloatLayout):
     load = ObjectProperty(None)
@@ -127,17 +133,11 @@ class MainScreen(Screen):
         self.ids.gnucash_file_path.text = filename[0]
         self.dismiss_popup()
 
-    def make_report(self):
+    def make_calendar(self):
         print("Pressed the button")
-
-    def on_touch_down(self, touch):
-        if self.ids.agenda_image.collide_point(*touch.pos):
-            print(touch)
-        else:
-            super(MainScreen, self).on_touch_down(touch)
-
-    def clicked_agenda(self):
-        print("clicked")
+        draw = DrawAgenda()
+        draw.draw_agenda()
+        self.ids.agenda_image.reload()
 
 
 class AgendaMakerApp(App):
@@ -153,7 +153,6 @@ class AgendaMakerApp(App):
         print(self.persist)
         print(self.root.main_screen)
         self.root.main_screen.persist = self.persist
-
 
 
 class Manager(ScreenManager):
