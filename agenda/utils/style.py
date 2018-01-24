@@ -12,11 +12,7 @@ color = dict(red=(237, 31, 36),
 
 scale = 2
 
+
 def font(size=40, style=None):
-    font = ImageFont.truetype('resources/majalla.ttf', size)
+    font = ImageFont.truetype('../resources/majalla.ttf', size)
     return font
-
-
-
-
-
