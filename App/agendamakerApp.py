@@ -171,6 +171,9 @@ class MainScreen(Screen):
         self.show_calendars()
 
     def show_calendars(self):
+        self.ids.checkbox_grid_internal_activities.clear_widgets()
+        self.ids.checkbox_grid_external_activities.clear_widgets()
+        self.ids.checkbox_grid_birthdays.clear_widgets()
         for c in self.calendar_dict:
             # internal activities
             state = 'normal'
