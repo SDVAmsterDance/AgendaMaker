@@ -8,7 +8,6 @@ def small_caps(draw, coords, string, font, fill):
     [x, y] = coords
     _, h = font.getsize(string)
     small_font = ImageFont.truetype(font.path, int(font.size * 0.68))
-    print(small_font.size)
     for c in string:
         if c.islower():
             w, h2 = draw.textsize(c.upper(), small_font)

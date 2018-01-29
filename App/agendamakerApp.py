@@ -157,7 +157,6 @@ class MainScreen(Screen):
         self._popup.dismiss()
 
     def make_calendar(self):
-        print("Pressed the button")
         self.persist.set_property("internal_activities", self.ids.internal_activities.text)
         self.persist.set_property("external_activities", self.ids.external_activities.text)
         self.persist.set_property("birthdays", self.ids.birthdays.text)

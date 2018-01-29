@@ -91,6 +91,26 @@ def card(draw: ImageDraw = None, x0: Union[int, float] = 0, x1: Union[int, float
          title: str = "", date: tuple = (), start: Tuple[int, int] = None,
          width: Union[int, float] = -1, activity: Activity=None, shape=List[Tuple], date_function=_draw_internal_date):
     # black card
+    """
+
+    :param draw:
+    :param x0:
+    :param x1:
+    :param y0:
+    :param y1:
+    :param background_color:
+    :param date_background_color:
+    :param text_color:
+    :param title_color:
+    :param date_text_color:
+    :param title:
+    :param date:
+    :param start:
+    :param width:
+    :param activity: the event to draw
+    :param shape: a list of points (x, y) to draw a polygon
+    :param date_function: function reference that draws the dates
+    """
     draw.polygon(shape,
                  fill=background_color)
 
@@ -121,12 +141,13 @@ def card(draw: ImageDraw = None, x0: Union[int, float] = 0, x1: Union[int, float
         _draw_multi_day_details(draw, activity, font, text_color, spacing, x0, x1, y)
 
 
-def internal_card(**kwargs) -> None:
-    shape = [(kwargs['x0'] - X_MIN, kwargs['y0'] - Y_MIN),
-             (kwargs['x1'] + X_MAX, kwargs['y0'] - Y_MIN),
-             (kwargs['x1'] + X_MIN, kwargs['y1'] + Y_MIN),
-             (kwargs['x0'] - X_MAX, kwargs['y1'] + Y_MIN)]
-    card(shape=shape, date_function=_draw_internal_date, **kwargs)
+def internal_card(x1, x0, y1, y0, **kwargs) -> None:
+    shape = [(x0 - X_MIN, y0 - Y_MIN),
+             (x1 + X_MAX, y0 - Y_MIN),
+             (x1 + X_MIN, y1 + Y_MIN),
+             (x0 - X_MAX, y1 + Y_MIN)]
+
+    card(shape=shape, date_function=_draw_internal_date, x0=x0, x1=x1, y0=y0, y1=y1, **kwargs)
 
 
 def external_card(**kwargs):

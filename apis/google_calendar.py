@@ -65,9 +65,6 @@ def get_events(calendarId: str, start_date: datetime.date, end_date: datetime.da
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('calendar', 'v3', http=http)
 
-    print('Getting the events')
-    now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
-    print(now)
     start_date = datetime.datetime.combine(
         start_date, datetime.datetime.min.time()).isoformat() + 'Z'
     end_date = datetime.datetime.combine(end_date, datetime.datetime.min.time()).isoformat() + 'Z'
@@ -78,10 +75,7 @@ def get_events(calendarId: str, start_date: datetime.date, end_date: datetime.da
     events = eventsResult.get('items', [])
 
     activities = []
-    if not events:
-        print('No events found.')
     for event in events:
-        # pprint(event)
         start_dateTime = dateutil.parser.parse(
             event['start'].get('dateTime', event['start'].get('date')))
         start_date = start_dateTime.date()
@@ -92,7 +86,7 @@ def get_events(calendarId: str, start_date: datetime.date, end_date: datetime.da
         description = event.get('description', "").strip()
         m = re.match('\[.*\]', description)
         if m:
-            print(m.group(0))
+            print("?",m.group(0))
             for g in m.groups(0):
                 print("!", g)
 
@@ -101,9 +95,6 @@ def get_events(calendarId: str, start_date: datetime.date, end_date: datetime.da
         activity = Activity(start_time, end_time, start_date,
                             end_date, title, description, location)
         activities.append(activity)
-        # start = event['start'].get('dateTime', event['start'].get('date'))
-        # # print(start, event['summary'])
-
     return activities
 
 
@@ -113,17 +104,10 @@ def get_calendars() -> dict:
     service = discovery.build('calendar', 'v3', http=http)
     page_token = None
     calendars = {}
-    calendar_counter = 0
-    ex = {str(i): {'text': "number: " + str(i), 'is_selected': False}
-          for i in range(10)}
     while True:
         calendar_list = service.calendarList().list(pageToken=page_token).execute()
         for calendar_list_entry in calendar_list['items']:
-            # print(calendar_list_entry['summary'], calendar_list_entry, "\n")
             calendars[calendar_list_entry['id']]=calendar_list_entry['summary']
-            # calendars[calendar_counter] = {'text': calendar_list_entry['summary'], 'id': calendar_list_entry['id'],
-            #                                'is_selected': False}
-            # calendar_counter += 1
         page_token = calendar_list.get('nextPageToken')
         if not page_token:
             break
