@@ -214,26 +214,21 @@ class DrawAgenda:
             date_background_color = style.color['lred']
             text_color = style.color['lred']
 
-        if activity.location:
-            details = "{}-{}\n{}\n{}".format(activity.begin_time, activity.end_time, activity.location, activity.price)
-        else:
-            details = "{}-{}\n{}".format(activity.begin_time, activity.end_time, activity.price)
-        shapes.internal_card(self.draw, x0, x1, y0, y1,
-                             background_color, date_background_color, text_color, title_color, date_text_color,
-                             title=activity.name, date=(str(activity.begin_date.day), str(activity.end_date.day)), details=details,
-                             start=start, width=self.width)
+        shapes.internal_card(draw=self.draw, x0=x0, x1=x1, y0=y0, y1=y1,
+                             background_color=background_color, date_background_color=date_background_color,
+                             text_color=text_color, title_color=title_color, date_text_color=date_text_color,
+                             title=activity.name, date=(str(activity.begin_date.day), str(activity.end_date.day)),
+                             activity=activity, start=start, width=self.width)
 
     def draw_external_activity(self, start: Tuple[int, int], month: int, activity: Activity,
                                end: Tuple[int, int] = None) -> None:
-        start_day, start_week = start
-        x0, x1, y0, y1 = self.calculate_card_size((start_day, start_week), margin=style.scale * 40)
+        x0, x1, y0, y1 = self.calculate_card_size(start, margin=style.scale * 40)
         if end:
             print(activity.name)
             end_day, end_week = end
-            if end_week == start_week:
-                x0, x1, y0, y1 = self.calculate_card_size(start=(start_day, start_week), end=(end_day, end_week),
+            if end_week == start[1]:
+                x0, x1, y0, y1 = self.calculate_card_size(start=start, end=(end_day, end_week),
                                                           margin=style.scale * 40)
-                pass
             else:
                 # multiple weeks, harder
                 pass
@@ -249,10 +244,11 @@ class DrawAgenda:
             date_background_color = style.color['lred']
             text_color = style.color['lred']
 
-        details = "{}-{}\n{}".format(activity.begin_time, activity.end_time, activity.price)
-        shapes.external_card(self.draw, x0, x1, y0, y1,
-                             background_color, date_background_color, text_color, title_color, date_text_color,
-                             title=activity.name, date=str(activity.begin_date.day), details=details)
+        shapes.external_card(draw=self.draw, x0=x0, x1=x1, y0=y0, y1=y1,
+                             background_color=background_color, date_background_color=date_background_color,
+                             text_color=text_color, title_color=title_color, date_text_color=date_text_color,
+                             title=activity.name, date=(str(activity.begin_date.day), str(activity.end_date.day)),
+                             activity=activity, start=start, width=self.width)
 
     def calculate_card_size(self, start, margin, end=None):
         start_day, start_week = start

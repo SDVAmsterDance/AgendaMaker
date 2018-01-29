@@ -145,6 +145,7 @@ class MainScreen(Screen):
         self.process_running = False
         self.internal_activities = set()
         self.external_activities = set()
+        self.calendar_dict = {}
 
     def set_internal_activities(self, internal_activities):
         self.internal_activities = set([x.strip() for x in internal_activities.split(",")])
