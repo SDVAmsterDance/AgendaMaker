@@ -1,6 +1,7 @@
 #:kivy 1.1.0
 #:import lv kivy.uix.listview
 #:import la kivy.adapters.listadapter
+#:import da kivy.adapters.dictadapter
 
 
 <Manager>:
@@ -40,42 +41,104 @@
                 height: 30
 
                 Button:
-                    id: make_calendar_button
                     text: 'Make Calendar'
                     on_release: root.make_calendar()
 
                 Button:
-                    id: make_calendar_button
                     text: 'Get Calendars'
-                    on_release: root.get_calendars()
+                    on_release: root.update_calendars()
 
+                Button:
+                    text: 'Logout'
+                    on_release: root.logout()
 
+            Accordion:
+                orientation: 'vertical'
 
-            BoxLayout:
-                padding: 10
-                orientation:'vertical'
-                Label:
-                    text_size: self.size
-                    halign: 'left'
-                    text: "Activiteiten"
-                CalendarId:
-                    id: internal_activities
-                    multiline:True
-                    hint_text:"Google Calendar ID"
-                Label:
-                    text_size: self.size
-                    halign: 'left'
-                    text: "Activiteiten Extern"
-                CalendarId:
-                    id: external_activities
-                    hint_text:"Google Calendar ID"
-                Label:
-                    text_size: self.size
-                    halign: 'left'
-                    text: "Verjaardagen"
-                CalendarId:
-                    id: birthdays
-                    hint_text:"Google Calendar ID"
+                AccordionItem:
+                    collapse:False
+                    title: 'Activiteiten Intern'
+                    id: accordion_internal_activities
+
+                    BoxLayout:
+                        padding: 10
+                        orientation:'vertical'
+                        GridLayout:
+                            id:checkbox_grid_internal_activities
+                            cols: 2
+                        Label:
+                            text_size: self.size
+                            halign: 'left'
+                            text: "Activiteiten"
+                        CalendarId:
+                            id: internal_activities
+                            multiline:True
+                            hint_text:"Google Calendar ID"
+                            on_focus: root.check_focus(self, 'internal')
+
+                AccordionItem:
+                    collapse:True
+                    title: 'Activiteiten Extern'
+                    id: accordion_external_activities
+                    BoxLayout:
+                        padding: 10
+                        orientation:'vertical'
+                        GridLayout:
+                            id:checkbox_grid_external_activities
+                            cols: 2
+                        Label:
+                            text_size: self.size
+                            halign: 'left'
+                            text: "Activiteiten Extern"
+                        CalendarId:
+                            id: external_activities
+                            hint_text:"Google Calendar ID"
+                            on_focus: root.check_focus(self, 'external')
+
+                AccordionItem:
+                    collapse:True
+                    title: 'verjaardagen'
+                    id: accordion_birthdays
+                    BoxLayout:
+                        padding: 10
+                        orientation:'vertical'
+                        GridLayout:
+                            id:checkbox_grid_birthdays
+                            cols: 2
+                        Label:
+                            text_size: self.size
+                            halign: 'left'
+                            text: "Verjaardagen"
+                        CalendarId:
+                            id: birthdays
+                            hint_text:"Google Calendar ID"
+                            on_focus: root.check_focus(self, 'birthdays')
+
+#            BoxLayout:
+#                padding: 10
+#                orientation:'vertical'
+#                Label:
+#                    text_size: self.size
+#                    halign: 'left'
+#                    text: "Activiteiten"
+#                CalendarId:
+#                    id: internal_activities
+#                    multiline:True
+#                    hint_text:"Google Calendar ID"
+#                Label:
+#                    text_size: self.size
+#                    halign: 'left'
+#                    text: "Activiteiten Extern"
+#                CalendarId:
+#                    id: external_activities
+#                    hint_text:"Google Calendar ID"
+#                Label:
+#                    text_size: self.size
+#                    halign: 'left'
+#                    text: "Verjaardagen"
+#                CalendarId:
+#                    id: birthdays
+#                    hint_text:"Google Calendar ID"
 
 
 
@@ -184,6 +247,29 @@
                 on_release: root.load(filechooser.path, filechooser.selection)
 
 
+<CalendarDialog>:
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+
+
+        GridLayout:
+            id:checkbox_grid
+            cols: 2
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Select Calendars"
+                on_release: root.load(checkbox_grid)
+
+
 <MessagePopup@Popup>:
     size_hint: 0.6, 0.3
 
@@ -211,3 +297,8 @@
     multiline:True
     size_hint_y: None
     height: 120
+
+
+<CalendarCheckBox@Checkbox>:
+    value:""
+

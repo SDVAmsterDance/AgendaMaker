@@ -150,12 +150,14 @@ class DrawAgenda:
         internal_events_calendarIDs = self.internal_activities
         external_events_calendarIDs = self.external_activities
         for calendarID in internal_events_calendarIDs:
-            self.draw_calendar_activities(calendarID, month, start_date,
-                                          end_date, activity_type=ActivityType.INTERN)
+            if calendarID:
+                self.draw_calendar_activities(calendarID, month, start_date,
+                                              end_date, activity_type=ActivityType.INTERN)
 
         for calendarID in external_events_calendarIDs:
-            self.draw_calendar_activities(calendarID, month, start_date,
-                                          end_date, activity_type=ActivityType.EXTERN)
+            if calendarID:
+                self.draw_calendar_activities(calendarID, month, start_date,
+                                              end_date, activity_type=ActivityType.EXTERN)
 
     def draw_calendar_activities(self, calendarID, month, start_date, end_date,
                                  activity_type: ActivityType = ActivityType.INTERN):

@@ -24,6 +24,7 @@ except ImportError:
 SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
 CLIENT_SECRET_FILE = '../apis/api_keys/client_secret.json'
 APPLICATION_NAME = 'Google Calendar API Python Quickstart'
+CREDENTIALS_FILE = 'calendar-python-agendamaker.json'
 
 
 def get_credentials():
@@ -39,8 +40,7 @@ def get_credentials():
     credential_dir = os.path.join(home_dir, '.credentials')
     if not os.path.exists(credential_dir):
         os.makedirs(credential_dir)
-    credential_path = os.path.join(credential_dir,
-                                   'calendar-python-agendamaker.json')
+    credential_path = os.path.join(credential_dir, CREDENTIALS_FILE)
 
     store = Storage(credential_path)
     credentials = store.get()
@@ -107,15 +107,32 @@ def get_events(calendarId: str, start_date: datetime.date, end_date: datetime.da
     return activities
 
 
-def get_calendars():
+def get_calendars() -> dict:
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('calendar', 'v3', http=http)
     page_token = None
+    calendars = {}
+    calendar_counter = 0
+    ex = {str(i): {'text': "number: " + str(i), 'is_selected': False}
+          for i in range(10)}
     while True:
         calendar_list = service.calendarList().list(pageToken=page_token).execute()
         for calendar_list_entry in calendar_list['items']:
-            print(calendar_list_entry['summary'], calendar_list_entry, "\n")
+            # print(calendar_list_entry['summary'], calendar_list_entry, "\n")
+            calendars[calendar_list_entry['id']]=calendar_list_entry['summary']
+            # calendars[calendar_counter] = {'text': calendar_list_entry['summary'], 'id': calendar_list_entry['id'],
+            #                                'is_selected': False}
+            # calendar_counter += 1
         page_token = calendar_list.get('nextPageToken')
         if not page_token:
             break
+    return calendars
+
+
+def remove_credentials():
+    home_dir = os.path.expanduser('~')
+    credential_dir = os.path.join(home_dir, '.credentials')
+    credential_path = os.path.join(credential_dir, CREDENTIALS_FILE)
+    if os.path.exists(credential_path):
+        os.remove(credential_path)

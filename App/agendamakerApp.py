@@ -6,13 +6,16 @@ from os.path import join, isdir
 
 from kivy.app import App
 from kivy.properties import ObjectProperty
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.checkbox import CheckBox
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.utils import platform
 
 from agenda.draw_agenda import DrawAgenda
-from apis.google_calendar import get_calendars
+from apis.google_calendar import get_calendars, remove_credentials
 
 try:
     from App.utils.persist_properties import PersistProperties
@@ -48,6 +51,13 @@ class WarningPopup(FloatLayout):
     def __init__(self, message=None, **kwargs):
         super(WarningPopup, self).__init__(**kwargs)
         self.ids.warning_popup_text.text = message
+
+
+class CalendarCheckBox(CheckBox):
+    value = ObjectProperty(None)
+
+    def __init__(self, **kwargs):
+        super(CalendarCheckBox, self).__init__(**kwargs)
 
 
 class LoadDialog(FloatLayout):
@@ -106,6 +116,26 @@ class LoadDialog(FloatLayout):
             self.filechooser.path = path
 
 
+class CalendarDialog(FloatLayout):
+    load = ObjectProperty(None)
+    cancel = ObjectProperty(None)
+
+    def __init__(self, **kwargs):
+        super(CalendarDialog, self).__init__(**kwargs)
+        self.calendar_dict = get_calendars()
+        self.add_checkboxes()
+
+    def add_checkboxes(self):
+        for c in self.calendar_dict:
+            self.ids.checkbox_grid.add_widget(Label(text=self.calendar_dict[c]))
+            self.ids.checkbox_grid.add_widget(CalendarCheckBox(value=c))
+
+    def get_keys(self):
+        if self.calendar_dict is None:
+            self.calendar_dict = get_calendars()
+        return [k for k in self.calendar_dict.keys()]
+
+
 class MainScreen(Screen):
     loadfile = ObjectProperty(None)
     text_input = ObjectProperty(None)
@@ -113,40 +143,93 @@ class MainScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.process_running = False
+        self.internal_activities = set()
+        self.external_activities = set()
+
+    def set_internal_activities(self, internal_activities):
+        self.internal_activities = set([x.strip() for x in internal_activities.split(",")])
+
+    def set_external_activities(self, external_activities):
+        self.external_activities = set([x.strip() for x in external_activities.split(",")])
 
     def dismiss_popup(self):
         self._popup.dismiss()
-
-    def show_set_gnucash_file_path(self):
-        path = None
-        if self.ids.gnucash_file_path.text:
-            if isdir(self.ids.gnucash_file_path.text):
-                path = self.ids.gnucash_file_path.text
-            else:
-                path = os.path.dirname(self.ids.gnucash_file_path.text)
-                print(path)
-
-        content = LoadDialog(path=path, load=self.set_destination_path, cancel=self.dismiss_popup)
-        self._popup = Popup(title="Select GnuCash File", content=content)
-        self._popup.open()
-
-    def set_destination_path(self, path, filename):
-        self.ids.gnucash_file_path.text = filename[0]
-        self.dismiss_popup()
 
     def make_calendar(self):
         print("Pressed the button")
         self.persist.set_property("internal_activities", self.ids.internal_activities.text)
         self.persist.set_property("external_activities", self.ids.external_activities.text)
         self.persist.set_property("birthdays", self.ids.birthdays.text)
-        internal_activities = [x.strip() for x in self.ids.internal_activities.text.split(",")]
-        external_activities = [x.strip() for x in self.ids.external_activities.text.split(",")]
-        draw = DrawAgenda(internal_activities=internal_activities, external_activities=external_activities)
+        self.set_internal_activities(self.ids.internal_activities.text)
+        self.set_external_activities(self.ids.external_activities.text)
+        draw = DrawAgenda(internal_activities=self.internal_activities, external_activities=self.external_activities)
         draw.draw_agenda()
         self.ids.agenda_image.reload()
 
-    def get_calendars(self):
-        get_calendars()
+    def update_calendars(self):
+        self.calendar_dict = get_calendars()
+        self.show_calendars()
+
+    def show_calendars(self):
+        for c in self.calendar_dict:
+            # internal activities
+            state = 'normal'
+            if c in self.persist.internal_activities:
+                state = 'down'
+            self.ids.checkbox_grid_internal_activities.add_widget(Label(text=self.calendar_dict[c]))
+            checkbox = CalendarCheckBox(value=c, state=state)
+            checkbox.bind(active=self.on_internal_checkbox_active)
+            self.ids.checkbox_grid_internal_activities.add_widget(checkbox)
+
+            # external activities
+            state = 'normal'
+            if c in self.persist.external_activities:
+                state = 'down'
+            self.ids.checkbox_grid_external_activities.add_widget(Label(text=self.calendar_dict[c]))
+            checkbox = CalendarCheckBox(value=c, state=state)
+            checkbox.bind(active=self.on_external_checkbox_active)
+            self.ids.checkbox_grid_external_activities.add_widget(checkbox)
+
+            # birthdays
+            state = 'normal'
+            if c in self.persist.birthdays:
+                state = 'down'
+            self.ids.checkbox_grid_birthdays.add_widget(Label(text=self.calendar_dict[c]))
+            checkbox = CalendarCheckBox(value=c, state=state)
+            checkbox.bind(active=self.on_external_checkbox_active)
+            self.ids.checkbox_grid_birthdays.add_widget(checkbox)
+
+    def on_internal_checkbox_active(self, checkbox, value):
+        if value:
+            self.internal_activities.add(checkbox.value)
+        else:
+            self.internal_activities.remove(checkbox.value)
+        self.ids.internal_activities.text = ",".join(self.internal_activities)
+
+    def on_external_checkbox_active(self, checkbox, value):
+        if value:
+            self.external_activities.add(checkbox.value)
+        else:
+            self.external_activities.remove(checkbox.value)
+        self.ids.external_activities.text = ",".join(self.external_activities)
+
+    # def on_birthday_checkbox_active(self, checkbox, value):
+    #     if value:
+    #         self.birthdays.add(checkbox.value)
+    #     else:
+    #         self.internal_activities.remove(checkbox.value)
+    #     self.ids.internal_activities.text = ",".join(self.internal_activities)
+
+    def check_focus(self, textinput, who=""):
+        if not textinput.focus:
+            if who == "internal":
+                self.set_internal_activities(textinput.text)
+            elif who == "external":
+                self.set_external_activities(textinput.text)
+
+    @staticmethod
+    def logout():
+        remove_credentials()
 
 
 class AgendaMakerApp(App):
@@ -163,6 +246,11 @@ class AgendaMakerApp(App):
         self.root.main_screen.ids.internal_activities.text = self.persist.internal_activities
         self.root.main_screen.ids.external_activities.text = self.persist.external_activities
         self.root.main_screen.ids.birthdays.text = self.persist.birthdays
+        self.root.main_screen.internal_activities = set(
+            [x.strip() for x in self.persist.internal_activities.split(",")])
+        self.root.main_screen.external_activities = set(
+            [x.strip() for x in self.persist.external_activities.split(",")])
+        self.root.main_screen.update_calendars()
 
 
 class Manager(ScreenManager):
