@@ -188,7 +188,7 @@ class DrawAgenda:
                     self.draw_external_activity(start=(weekday_num, week),
                                                 month=month, activity=event)
 
-    def draw_activity(self, start: Tuple[int, int] = (), month: int = 0, activity: Activity = None,
+    def draw_activity(self, start: Tuple[int, int] = (), activity: Activity = None,
                       end: Tuple[int, int] = None, card_style: dict = defaultdict(lambda: (0, 0, 0)),
                       activity_shape: callable = None):
         background_color = card_style['background_color']
@@ -266,7 +266,7 @@ class DrawAgenda:
                       'date_background_color': date_background_color,
                       'text_color': text_color,
                       'date_text_color': date_text_color}
-        self.draw_activity(start, month, activity, end, card_style, shapes.internal_card)
+        self.draw_activity(start, activity, end, card_style, shapes.internal_card)
 
     def draw_external_activity(self, start: Tuple[int, int], month: int, activity: Activity,
                                end: Tuple[int, int] = None) -> None:
@@ -286,7 +286,7 @@ class DrawAgenda:
                       'date_background_color': date_background_color,
                       'text_color': text_color,
                       'date_text_color': date_text_color}
-        self.draw_activity(start, month, activity, end, card_style, shapes.external_card)
+        self.draw_activity(start, activity, end, card_style, shapes.external_card)
 
     def calculate_card_size(self, start, margin, end=None):
         start_day, start_week = start
