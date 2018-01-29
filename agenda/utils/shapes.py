@@ -89,7 +89,8 @@ def card(draw: ImageDraw = None, x0: Union[int, float] = 0, x1: Union[int, float
          date_background_color: Tuple[int, int, int] = (0, 0, 0), text_color: Tuple[int, int, int] = (0, 0, 0),
          title_color: Tuple[int, int, int] = (0, 0, 0), date_text_color: Tuple[int, int, int] = (0, 0, 0),
          title: str = "", date: tuple = (), start: Tuple[int, int] = None,
-         width: Union[int, float] = -1, activity: Activity=None, shape=List[Tuple], date_function=_draw_internal_date):
+         width: Union[int, float] = -1, activity: Activity = None, shape=List[Tuple],
+         date_function=_draw_internal_date):
     # black card
     """
 
@@ -141,22 +142,51 @@ def card(draw: ImageDraw = None, x0: Union[int, float] = 0, x1: Union[int, float
         _draw_multi_day_details(draw, activity, font, text_color, spacing, x0, x1, y)
 
 
-def internal_card(x1, x0, y1, y0, **kwargs) -> None:
-    shape = [(x0 - X_MIN, y0 - Y_MIN),
-             (x1 + X_MAX, y0 - Y_MIN),
-             (x1 + X_MIN, y1 + Y_MIN),
-             (x0 - X_MAX, y1 + Y_MIN)]
+def internal_card(x1, x0, y1, y0, cut='', **kwargs) -> None:
+    card_horizontal_middle = (y0 + y1) / 2
+    if 'l' in cut:
+        left_side = [(x0 - X_MAX, y1 + Y_MIN),
+                     (x0 - X_MAX, card_horizontal_middle + 10 * style.scale),
+                     (x0 - X_MIN - 2 * style.scale, card_horizontal_middle - 10 * style.scale),
+                     (x0 - X_MIN - 2 * style.scale, y0 - Y_MIN)]
+    else:
+        left_side = [(x0 - X_MAX, y1 + Y_MIN),
+                     (x0 - X_MIN, y0 - Y_MIN)]
+    if 'r' in cut:
+        right_side = [(x1 + X_MAX, y0 - Y_MIN),
+                      (x1 + X_MAX, card_horizontal_middle - 10 * style.scale),
+                      (x1 + X_MIN - 2 * style.scale, card_horizontal_middle + 10 * style.scale),
+                      (x1 + X_MIN - 2 * style.scale, y1 + Y_MIN)]
+    else:
+        right_side = [(x1 + X_MAX, y0 - Y_MIN),
+                      (x1 + X_MIN, y1 + Y_MIN)]
+
+    shape = left_side + right_side
 
     card(shape=shape, date_function=_draw_internal_date, x0=x0, x1=x1, y0=y0, y1=y1, **kwargs)
 
 
-def external_card(**kwargs):
-    card_horizontal_middle = (kwargs['y0'] + kwargs['y1']) / 2
+def external_card(x1, x0, y1, y0, cut='', **kwargs):
+    card_horizontal_middle = (y0 + y1) / 2
 
-    shape = [(kwargs['x0'] - X_MAX, card_horizontal_middle),
-             (kwargs['x0'] - X_MIN, kwargs['y0'] - Y_MIN),
-             (kwargs['x1'] + X_MIN, kwargs['y0'] - Y_MIN),
-             (kwargs['x1'] + X_MAX, card_horizontal_middle),
-             (kwargs['x1'] + X_MIN, kwargs['y1'] + Y_MIN),
-             (kwargs['x0'] - X_MIN, kwargs['y1'] + Y_MIN)]
-    card(shape=shape, date_function=_draw_external_date, **kwargs)
+    if 'l' in cut:
+        left_side = [(x0 - X_MAX, y1 + Y_MIN),
+                     (x0 - X_MAX, card_horizontal_middle + 10 * style.scale),
+                     (x0 - X_MIN - 2 * style.scale, card_horizontal_middle - 10 * style.scale),
+                     (x0 - X_MIN - 2 * style.scale, y0 - Y_MIN)]
+    else:
+        left_side = [(x0 - X_MIN, y1 + Y_MIN),
+                     (x0 - X_MAX, card_horizontal_middle),
+                     (x0 - X_MIN, y0 - Y_MIN)]
+    if 'r' in cut:
+        right_side = [(x1 + X_MAX, y0 - Y_MIN),
+                      (x1 + X_MAX, card_horizontal_middle - 10 * style.scale),
+                      (x1 + X_MIN - 2 * style.scale, card_horizontal_middle + 10 * style.scale),
+                      (x1 + X_MIN - 2 * style.scale, y1 + Y_MIN)]
+    else:
+        right_side = [(x1 + X_MIN, y0 - Y_MIN),
+                      (x1 + X_MAX, card_horizontal_middle),
+                      (x1 + X_MIN, y1 + Y_MIN)]
+
+    shape = left_side + right_side
+    card(shape=shape, date_function=_draw_external_date, x0=x0, x1=x1, y0=y0, y1=y1, **kwargs)
