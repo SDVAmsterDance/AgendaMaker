@@ -175,9 +175,10 @@ class MainScreen(Screen):
         self.set_external_activities(self.ids.external_activities.text)
         self.set_birthdays(self.ids.birthdays.text)
         if self.ids.tabs.current_tab.text == "Maand":
-            draw = DrawAgenda(internal_activities=self.internal_activities,
+            draw = DrawAgenda(12, 2017, internal_activities=self.internal_activities,
                               external_activities=self.external_activities)
-            draw.draw_agenda()
+            fname = draw.draw_agenda()
+            self.ids.agenda_image.source=fname
             self.ids.agenda_image.reload()
         elif self.ids.tabs.current_tab.text == "Verjaardagen":
             email = Email(self.birthdays, self.ids.birthdays_template.text)

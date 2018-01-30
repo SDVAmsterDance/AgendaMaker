@@ -22,13 +22,16 @@ class DrawAgenda:
     calendar_start_y = header_height + weekdays_height
     debug = False
 
-    def __init__(self, internal_activities, external_activities):
+    def __init__(self, month, year, internal_activities, external_activities):
         self.width *= style.scale
         self.height *= style.scale
         self.header_height *= style.scale
         self.weekdays_height *= style.scale
         self.font_size *= style.scale
         self.calendar_start_y = self.header_height + self.weekdays_height
+
+        self.month = month
+        self.year = year
         self.internal_activities = internal_activities
         self.external_activities = external_activities
 
@@ -40,23 +43,27 @@ class DrawAgenda:
         self.draw_squiggles()
         self.draw_weekdays()
         start_date, end_date = self.draw_month()
-        now = datetime.datetime.now()
-        self.draw_activities(month=now.month, start_date=start_date, end_date=end_date)
+        self.draw_activities(start_date=start_date, end_date=end_date)
         if self.debug:
             self.draw_debug()
 
     def draw_agenda(self):
         self._make_agenda_image()
         # self.im.thumbnail((self.width/style.scale, self.height/style.scale), Image.BICUBIC)
-        self.im.save('test.gif', "GIF")
+        date = datetime.date(self.year, self.month, 1)
+        month_text = date.strftime("%B%Y")
+        fname = '{}.png'.format(month_text)
+        self.im.save(fname, "png")
+        return fname
 
     def draw_header(self):
         margin_left = style.scale * 10
         banner_height = style.scale * 80
         banner_width = style.scale * 500
         header_text = "AmsterDance"
-        now = datetime.datetime.now()
-        month_text = now.strftime("%B %Y")
+
+        date = datetime.date(self.year, self.month, 1)
+        month_text = date.strftime("%B %Y")
 
         self.draw.line([margin_left, self.header_height, self.width - (style.scale * 220), self.header_height],
                        fill=style.color['black'])
@@ -85,11 +92,8 @@ class DrawAgenda:
                         )
 
     def draw_month(self):
-        now = datetime.datetime.now()
         day = 1
-        month = now.month
-        year = now.year
-        date = datetime.date(year, month, day)
+        date = datetime.date(self.year, self.month, day)
 
         if date.weekday():
             date = date - datetime.timedelta(days=date.weekday())
@@ -99,9 +103,9 @@ class DrawAgenda:
 
         for w in range(6):
             for d in range(7):
-                self.draw_day(d, w, date, month)
+                self.draw_day(d, w, date, self.month)
                 date += datetime.timedelta(days=1)
-        end_date = date - datetime.timedelta(days=1)
+        end_date = date
         return start_date, end_date
 
     def draw_day(self, d, w, date, month):
@@ -145,20 +149,20 @@ class DrawAgenda:
             self.draw.text((text_x0, weekdays_text_y), day.name, font=font,
                            fill=style.color["black"])
 
-    def draw_activities(self, month, start_date, end_date):
+    def draw_activities(self, start_date, end_date):
         internal_events_calendarIDs = self.internal_activities
         external_events_calendarIDs = self.external_activities
         for calendarID in internal_events_calendarIDs:
             if calendarID:
-                self.draw_calendar_activities(calendarID, month, start_date,
+                self.draw_calendar_activities(calendarID, start_date,
                                               end_date, activity_type=ActivityType.INTERN)
 
         for calendarID in external_events_calendarIDs:
             if calendarID:
-                self.draw_calendar_activities(calendarID, month, start_date,
+                self.draw_calendar_activities(calendarID, start_date,
                                               end_date, activity_type=ActivityType.EXTERN)
 
-    def draw_calendar_activities(self, calendarID, month, start_date, end_date,
+    def draw_calendar_activities(self, calendarID, start_date, end_date,
                                  activity_type: ActivityType = ActivityType.INTERN):
         events = get_events(calendarId=calendarID, start_date=start_date,
                             end_date=end_date)
@@ -172,10 +176,10 @@ class DrawAgenda:
                 end_week = int(math.floor(end_day / 7))
                 if activity_type is ActivityType.INTERN:
                     self.draw_internal_activity(start=(start_weekday_num, start_week), end=(end_weekday_num, end_week),
-                                                month=month, activity=event)
+                                                activity=event)
                 else:
                     self.draw_external_activity(start=(start_weekday_num, start_week), end=(end_weekday_num, end_week),
-                                                month=month, activity=event)
+                                                activity=event)
 
             else:
                 day = (event.begin_date - start_date).days
@@ -183,10 +187,10 @@ class DrawAgenda:
                 week = int(math.floor(day / 7))
                 if activity_type is ActivityType.INTERN:
                     self.draw_internal_activity(start=(weekday_num, week),
-                                                month=month, activity=event)
+                                                activity=event)
                 else:
                     self.draw_external_activity(start=(weekday_num, week),
-                                                month=month, activity=event)
+                                                activity=event)
 
     def draw_activity(self, start: Tuple[int, int] = (), activity: Activity = None,
                       end: Tuple[int, int] = None, card_style: dict = defaultdict(lambda: (0, 0, 0)),
@@ -222,7 +226,7 @@ class DrawAgenda:
                 activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, **params)
             else:
                 for week in range(start_week, end_week + 1):
-                    if week<0:
+                    if week < 0:
                         continue
                     if week == start_week:
                         x0, x1, y0, y1 = self.calculate_card_size(start=(start_day, week), end=(6, week),
@@ -248,14 +252,14 @@ class DrawAgenda:
         else:
             activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, **params)
 
-    def draw_internal_activity(self, start: Tuple[int, int], month: int, activity: Activity,
+    def draw_internal_activity(self, start: Tuple[int, int], activity: Activity,
                                end: Tuple[int, int] = None) -> None:
         background_color = style.color['black']
         title_color = style.color['white']
         date_text_color = style.color['white']
         date_background_color = style.color['red']
         text_color = style.color['red']
-        if activity.begin_date.month != month:
+        if activity.begin_date.month != self.month:
             background_color = style.color['lblack']
             title_color = style.color['lwhite']
             date_background_color = style.color['lred']
@@ -268,14 +272,14 @@ class DrawAgenda:
                       'date_text_color': date_text_color}
         self.draw_activity(start, activity, end, card_style, shapes.internal_card)
 
-    def draw_external_activity(self, start: Tuple[int, int], month: int, activity: Activity,
+    def draw_external_activity(self, start: Tuple[int, int], activity: Activity,
                                end: Tuple[int, int] = None) -> None:
         background_color = style.color['dred']
         title_color = style.color['lred']
         date_text_color = style.color['white']
         date_background_color = style.color['red']
         text_color = style.color['white']
-        if activity.begin_date.month != month:
+        if activity.begin_date.month != self.month:
             background_color = style.color['ldred']
             title_color = style.color['lwhite']
             date_background_color = style.color['lred']
