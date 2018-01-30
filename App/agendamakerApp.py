@@ -170,17 +170,19 @@ class MainScreen(Screen):
         self.persist.set_property("internal_activities", self.ids.internal_activities.text)
         self.persist.set_property("external_activities", self.ids.external_activities.text)
         self.persist.set_property("birthdays", self.ids.birthdays.text)
+        self.persist.set_property("birthdays_template", self.ids.birthdays_template.text)
         self.set_internal_activities(self.ids.internal_activities.text)
         self.set_external_activities(self.ids.external_activities.text)
         self.set_birthdays(self.ids.birthdays.text)
-        draw = DrawAgenda(internal_activities=self.internal_activities, external_activities=self.external_activities)
-        draw.draw_agenda()
-        self.ids.agenda_image.reload()
-
-        email = Email(self.birthdays)
-
-        now = datetime.datetime.now()
-        email.make_email(month=now.month)
+        if self.ids.tabs.current_tab.text == "Maand":
+            draw = DrawAgenda(internal_activities=self.internal_activities,
+                              external_activities=self.external_activities)
+            draw.draw_agenda()
+            self.ids.agenda_image.reload()
+        elif self.ids.tabs.current_tab.text == "Verjaardagen":
+            email = Email(self.birthdays, self.ids.birthdays_template.text)
+            now = datetime.datetime.now()
+            self.ids.birthdays_mail.text = email.make_email(month=now.month)
 
     def update_calendars(self):
         self.calendar_dict = get_calendars()
@@ -208,15 +210,6 @@ class MainScreen(Screen):
             checkbox.bind(active=self.on_external_checkbox_active)
             self.ids.checkbox_grid_external_activities.add_widget(checkbox)
 
-            # # birthdays
-            # state = 'normal'
-            # if c in self.persist.birthdays:
-            #     state = 'down'
-            # self.ids.checkbox_grid_birthdays.add_widget(Label(text=self.calendar_dict[c]))
-            # checkbox = CalendarCheckBox(value=c, state=state)
-            # checkbox.bind(active=self.on_birthday_checkbox_active)
-            # self.ids.checkbox_grid_birthdays.add_widget(checkbox)
-
     def on_internal_checkbox_active(self, checkbox, value):
         if value:
             self.internal_activities.add(checkbox.value)
@@ -230,13 +223,6 @@ class MainScreen(Screen):
         else:
             self.external_activities.remove(checkbox.value)
         self.ids.external_activities.text = ",".join(self.external_activities)
-
-    # def on_birthday_checkbox_active(self, checkbox, value):
-    #     if value:
-    #         self.birthdays.add(checkbox.value)
-    #     else:
-    #         self.birthdays.remove(checkbox.value)
-    #     self.ids.birthdays.text = ",".join(self.birthdays)
 
     def check_focus(self, textinput, who=""):
         if not textinput.focus:
@@ -266,6 +252,7 @@ class AgendaMakerApp(App):
         self.root.main_screen.ids.internal_activities.text = self.persist.internal_activities
         self.root.main_screen.ids.external_activities.text = self.persist.external_activities
         self.root.main_screen.ids.birthdays.text = self.persist.birthdays
+        self.root.main_screen.ids.birthdays_template.text = self.persist.birthdays_template
         self.root.main_screen.internal_activities = set(
             [x.strip() for x in self.persist.internal_activities.split(",")])
         self.root.main_screen.external_activities = set(

@@ -54,7 +54,6 @@
 
             Accordion:
                 orientation: 'vertical'
-
                 AccordionItem:
                     collapse:False
                     title: 'Activiteiten Intern'
@@ -69,7 +68,9 @@
                         Label:
                             text_size: self.size
                             halign: 'left'
-                            text: "Activiteiten"
+                            text: "Activiteiten Intern"
+                            size_hint_y: None
+                            height: 40
                         CalendarId:
                             id: internal_activities
                             multiline:True
@@ -90,6 +91,8 @@
                             text_size: self.size
                             halign: 'left'
                             text: "Activiteiten Extern"
+                            size_hint_y: None
+                            height: 40
                         CalendarId:
                             id: external_activities
                             hint_text:"Google Calendar ID"
@@ -123,6 +126,7 @@
 #
 
         TabbedPanel:
+            id: tabs
             do_default_tab: False
             TabbedPanelItem:
                 text: 'Maand'

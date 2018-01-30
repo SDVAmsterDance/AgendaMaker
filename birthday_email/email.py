@@ -1,12 +1,15 @@
 import datetime
 from apis.google_sheets import batch_get_sheet_values
+from jinja2 import Template, Environment
+
+# TEMPLATE_ENVIRONMENT = Environment(keep_trailing_newline=True)
 
 class Email(object):
-
-    def __init__(self, birthdays):
+    def __init__(self, birthdays, template=""):
         self.birthdays = birthdays
+        self.template = template
 
-    def make_email(self, month):
+    def _get_birthdays(self, month):
         now = datetime.datetime.now()
         year = now.year
         range_names = [
@@ -20,16 +23,21 @@ class Email(object):
             values, service = batch_get_sheet_values(spreadsheet_id, range_names, valueRenderOption="UNFORMATTED_VALUE")
             if values:
                 for name, lid, birthdate in values:
-                    name = " ".join(filter(None,name))
+                    name = " ".join(filter(None, name))
                     lid = lid[0]
                     if lid == "Ja" and birthdate:
-                            birthdate = zero_date + datetime.timedelta(days=int(birthdate[0]))
-                            age = year - birthdate.year
-                            if birthdate.month == month:
-                                birthdays.append((datetime.date(year, birthdate.month, birthdate.day),
-                                                  [name, birthdate.strftime("%d %B"), age]))
+                        birthdate = zero_date + datetime.timedelta(days=int(birthdate[0]))
+                        age = year - birthdate.year
+                        if birthdate.month == month:
+                            birthdays.append((datetime.date(year, birthdate.month, birthdate.day),
+                                              {'name': name, 'birthdate': birthdate.strftime("%d %B"), 'age': age}))
 
-                birthdays = sorted(birthdays, key=lambda l:l[0])
+        return sorted(birthdays, key=lambda l: l[0])
 
-        for b, text in birthdays:
-            print("{} is jarig op {} en wordt {} jaar oud!".format(text[0], text[1], text[2]))
+    def make_email(self, month):
+        birthdays = self._get_birthdays(month)
+        template = Template(self.template)
+        # template = TEMPLATE_ENVIRONMENT.from_string(self.template)
+        return template.render(birthdays=birthdays)
+
+
