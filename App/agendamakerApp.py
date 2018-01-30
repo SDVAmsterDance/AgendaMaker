@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 import win32api
@@ -6,7 +7,6 @@ from os.path import join, isdir
 
 from kivy.app import App
 from kivy.properties import ObjectProperty
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
@@ -16,6 +16,7 @@ from kivy.utils import platform
 
 from agenda.draw_agenda import DrawAgenda
 from apis.google_calendar import get_calendars, remove_credentials
+from birthday_email.email import Email
 
 try:
     from App.utils.persist_properties import PersistProperties
@@ -58,6 +59,11 @@ class CalendarCheckBox(CheckBox):
 
     def __init__(self, **kwargs):
         super(CalendarCheckBox, self).__init__(**kwargs)
+
+
+class CalendarCheckBoxLabel(Label):
+    def __init__(self, **kwargs):
+        super(CalendarCheckBoxLabel, self).__init__(**kwargs)
 
 
 class LoadDialog(FloatLayout):
@@ -145,6 +151,7 @@ class MainScreen(Screen):
         self.process_running = False
         self.internal_activities = set()
         self.external_activities = set()
+        self.birthdays = set()
         self.calendar_dict = {}
 
     def set_internal_activities(self, internal_activities):
@@ -152,6 +159,9 @@ class MainScreen(Screen):
 
     def set_external_activities(self, external_activities):
         self.external_activities = set([x.strip() for x in external_activities.split(",")])
+
+    def set_birthdays(self, birthdays):
+        self.birthdays = set([x.strip() for x in birthdays.split(",")])
 
     def dismiss_popup(self):
         self._popup.dismiss()
@@ -162,9 +172,15 @@ class MainScreen(Screen):
         self.persist.set_property("birthdays", self.ids.birthdays.text)
         self.set_internal_activities(self.ids.internal_activities.text)
         self.set_external_activities(self.ids.external_activities.text)
+        self.set_birthdays(self.ids.birthdays.text)
         draw = DrawAgenda(internal_activities=self.internal_activities, external_activities=self.external_activities)
         draw.draw_agenda()
         self.ids.agenda_image.reload()
+
+        email = Email(self.birthdays)
+
+        now = datetime.datetime.now()
+        email.make_email(month=now.month)
 
     def update_calendars(self):
         self.calendar_dict = get_calendars()
@@ -173,13 +189,12 @@ class MainScreen(Screen):
     def show_calendars(self):
         self.ids.checkbox_grid_internal_activities.clear_widgets()
         self.ids.checkbox_grid_external_activities.clear_widgets()
-        self.ids.checkbox_grid_birthdays.clear_widgets()
         for c in self.calendar_dict:
             # internal activities
             state = 'normal'
             if c in self.persist.internal_activities:
                 state = 'down'
-            self.ids.checkbox_grid_internal_activities.add_widget(Label(text=self.calendar_dict[c]))
+            self.ids.checkbox_grid_internal_activities.add_widget(CalendarCheckBoxLabel(text=self.calendar_dict[c]))
             checkbox = CalendarCheckBox(value=c, state=state)
             checkbox.bind(active=self.on_internal_checkbox_active)
             self.ids.checkbox_grid_internal_activities.add_widget(checkbox)
@@ -188,19 +203,19 @@ class MainScreen(Screen):
             state = 'normal'
             if c in self.persist.external_activities:
                 state = 'down'
-            self.ids.checkbox_grid_external_activities.add_widget(Label(text=self.calendar_dict[c]))
+            self.ids.checkbox_grid_external_activities.add_widget(CalendarCheckBoxLabel(text=self.calendar_dict[c]))
             checkbox = CalendarCheckBox(value=c, state=state)
             checkbox.bind(active=self.on_external_checkbox_active)
             self.ids.checkbox_grid_external_activities.add_widget(checkbox)
 
-            # birthdays
-            state = 'normal'
-            if c in self.persist.birthdays:
-                state = 'down'
-            self.ids.checkbox_grid_birthdays.add_widget(Label(text=self.calendar_dict[c]))
-            checkbox = CalendarCheckBox(value=c, state=state)
-            checkbox.bind(active=self.on_external_checkbox_active)
-            self.ids.checkbox_grid_birthdays.add_widget(checkbox)
+            # # birthdays
+            # state = 'normal'
+            # if c in self.persist.birthdays:
+            #     state = 'down'
+            # self.ids.checkbox_grid_birthdays.add_widget(Label(text=self.calendar_dict[c]))
+            # checkbox = CalendarCheckBox(value=c, state=state)
+            # checkbox.bind(active=self.on_birthday_checkbox_active)
+            # self.ids.checkbox_grid_birthdays.add_widget(checkbox)
 
     def on_internal_checkbox_active(self, checkbox, value):
         if value:
@@ -220,8 +235,8 @@ class MainScreen(Screen):
     #     if value:
     #         self.birthdays.add(checkbox.value)
     #     else:
-    #         self.internal_activities.remove(checkbox.value)
-    #     self.ids.internal_activities.text = ",".join(self.internal_activities)
+    #         self.birthdays.remove(checkbox.value)
+    #     self.ids.birthdays.text = ",".join(self.birthdays)
 
     def check_focus(self, textinput, who=""):
         if not textinput.focus:
@@ -229,6 +244,8 @@ class MainScreen(Screen):
                 self.set_internal_activities(textinput.text)
             elif who == "external":
                 self.set_external_activities(textinput.text)
+            elif who == "birthdays":
+                self.set_birthdays(textinput.text)
 
     @staticmethod
     def logout():
@@ -253,6 +270,8 @@ class AgendaMakerApp(App):
             [x.strip() for x in self.persist.internal_activities.split(",")])
         self.root.main_screen.external_activities = set(
             [x.strip() for x in self.persist.external_activities.split(",")])
+        self.root.main_screen.birthdays = set(
+            [x.strip() for x in self.persist.birthdays.split(",")])
         self.root.main_screen.update_calendars()
 
 

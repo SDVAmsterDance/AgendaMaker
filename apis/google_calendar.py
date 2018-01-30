@@ -23,7 +23,7 @@ except ImportError:
 # at ~/.credentials/calendar-python-quickstart.json
 SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
 CLIENT_SECRET_FILE = '../apis/api_keys/client_secret.json'
-APPLICATION_NAME = 'Google Calendar API Python Quickstart'
+APPLICATION_NAME = 'AmsterDance AgendaMaker'
 CREDENTIALS_FILE = 'calendar-python-agendamaker.json'
 
 
@@ -69,10 +69,14 @@ def get_events(calendarId: str, start_date: datetime.date, end_date: datetime.da
         start_date, datetime.datetime.min.time()).isoformat() + 'Z'
     end_date = datetime.datetime.combine(end_date, datetime.datetime.min.time()).isoformat() + 'Z'
 
-    eventsResult = service.events().list(
-        calendarId=calendarId, timeMin=start_date, timeMax=end_date, singleEvents=True,
-        orderBy='startTime').execute()
-    events = eventsResult.get('items', [])
+    try:
+        eventsResult = service.events().list(
+            calendarId=calendarId, timeMin=start_date, timeMax=end_date, singleEvents=True,
+            orderBy='startTime').execute()
+        events = eventsResult.get('items', [])
+    except:
+        print("invalid calendarID {}".format(calendarId))
+        return []
 
     activities = []
     for event in events:
