@@ -121,35 +121,52 @@
                             on_focus: root.check_focus(self, 'birthdays')
 
 
-        TabbedPanel:
-            id: tabs
-            do_default_tab: False
-            TabbedPanelItem:
-                text: 'Maand'
-                id: accordion_month_image
-                Image:
-                    id:agenda_image
-#                    source:"test.gif"
-                    size: 877, 620
-            TabbedPanelItem:
-                text: 'Flyer'
-                id: accordion_month_flyer
-            TabbedPanelItem:
-                text: 'Verjaardagen'
-                id: accordion_birthdays
-                BoxLayout:
-                    TextInput:
-                        id: birthdays_template
-                        multiline: True
-                        size_hint_x: 1
-                        hint_text: 'template'
-                        padding: dp(10), dp(10), 0, 0
-                    TextInput:
-                        id: birthdays_mail
-                        multiline: True
-                        size_hint_x: 1
-                        hint_text: 'email'
-                        padding: dp(10), dp(10), 0, 0
+        BoxLayout:
+            orientation: 'vertical'
+            TabbedPanel:
+                id: tabs
+                do_default_tab: False
+                TabbedPanelItem:
+                    text: 'Maand'
+                    id: accordion_month_image
+                    Image:
+                        id:agenda_image
+                        size: 877, 620
+
+                TabbedPanelItem:
+                    text: 'Flyer'
+                    id: accordion_month_flyer
+                TabbedPanelItem:
+                    text: 'Verjaardagen'
+                    id: accordion_birthdays
+                    BoxLayout:
+                        TextInput:
+                            id: birthdays_template
+                            multiline: True
+                            size_hint_x: 1
+                            hint_text: 'template'
+                            padding: dp(10), dp(10), 0, 0
+                        TextInput:
+                            id: birthdays_mail
+                            multiline: True
+                            size_hint_x: 1
+                            hint_text: 'email'
+                            padding: dp(10), dp(10), 0, 0
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: dp(44)
+                Button:
+                    text: "Vorige maand"
+                    on_press: root.previous_month()
+
+                Label:
+                    id: current_month
+                    text: "huidige maand"
+
+                Button:
+                    text: "Volgende maand"
+                    on_press: root.next_month()
 
 
 

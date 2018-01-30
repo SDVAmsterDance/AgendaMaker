@@ -153,6 +153,9 @@ class MainScreen(Screen):
         self.external_activities = set()
         self.birthdays = set()
         self.calendar_dict = {}
+        now = datetime.datetime.now()
+        self.year = now.year
+        self.month = now.month + 1
 
     def set_internal_activities(self, internal_activities):
         self.internal_activities = set([x.strip() for x in internal_activities.split(",")])
@@ -175,15 +178,15 @@ class MainScreen(Screen):
         self.set_external_activities(self.ids.external_activities.text)
         self.set_birthdays(self.ids.birthdays.text)
         if self.ids.tabs.current_tab.text == "Maand":
-            draw = DrawAgenda(12, 2017, internal_activities=self.internal_activities,
+            draw = DrawAgenda(self.month, self.year, internal_activities=self.internal_activities,
                               external_activities=self.external_activities)
             fname = draw.draw_agenda()
-            self.ids.agenda_image.source=fname
+            self.ids.agenda_image.source = fname
             self.ids.agenda_image.reload()
+            self.persist.set_property("agenda_image", fname)
         elif self.ids.tabs.current_tab.text == "Verjaardagen":
             email = Email(self.birthdays, self.ids.birthdays_template.text)
-            now = datetime.datetime.now()
-            self.ids.birthdays_mail.text = email.make_email(month=now.month)
+            self.ids.birthdays_mail.text = email.make_email(month=self.month)
 
     def update_calendars(self):
         self.calendar_dict = get_calendars()
@@ -234,6 +237,26 @@ class MainScreen(Screen):
             elif who == "birthdays":
                 self.set_birthdays(textinput.text)
 
+    def previous_month(self):
+        if self.month == 1:
+            self.year -= 1
+        self.month -= 1
+        self.month = (self.month % 12)
+        if not self.month:
+            self.month = 12
+        self.ids.current_month.text = datetime.date(self.year, self.month, 1).strftime("%B %Y")
+        self.make_calendar()
+
+    def next_month(self):
+        if self.month == 12:
+            self.year += 1
+        self.month += 1
+        self.month = self.month % 12
+        if not self.month:
+            self.month = 12
+        self.ids.current_month.text = datetime.date(self.year, self.month, 1).strftime("%B %Y")
+        self.make_calendar()
+
     @staticmethod
     def logout():
         remove_credentials()
@@ -260,6 +283,8 @@ class AgendaMakerApp(App):
             [x.strip() for x in self.persist.external_activities.split(",")])
         self.root.main_screen.birthdays = set(
             [x.strip() for x in self.persist.birthdays.split(",")])
+        self.root.main_screen.ids.agenda_image.source = self.persist.agenda_image
+        self.root.main_screen.ids.agenda_image.reload()
         self.root.main_screen.update_calendars()
 
 
