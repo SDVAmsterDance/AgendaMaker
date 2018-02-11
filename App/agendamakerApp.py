@@ -7,7 +7,10 @@ from os.path import join, isdir
 
 from kivy.app import App
 from kivy.properties import ObjectProperty
+from kivy.uix.bubble import Bubble
+from kivy.uix.button import Button
 from kivy.uix.checkbox import CheckBox
+from kivy.uix.dropdown import DropDown
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
@@ -40,6 +43,10 @@ def get_drives():
     drives = win32api.GetLogicalDriveStrings()
     drives = drives.split('\000')[:-1]
     return drives
+
+
+class CustomDropDown(DropDown):
+    pass
 
 
 class MessagePopup(Popup):
@@ -189,8 +196,10 @@ class MainScreen(Screen):
             self.ids.birthdays_mail.text = email.make_email(month=self.month)
 
     def update_calendars(self):
+        self.ids.connection_dropdown.select("Updating")
         self.calendar_dict = get_calendars()
         self.show_calendars()
+        self.ids.connection_dropdown.select("Connection")
 
     def show_calendars(self):
         self.ids.checkbox_grid_internal_activities.clear_widgets()
@@ -257,9 +266,10 @@ class MainScreen(Screen):
         self.ids.current_month.text = datetime.date(self.year, self.month, 1).strftime("%B %Y")
         self.make_calendar()
 
-    @staticmethod
-    def logout():
+    def logout(self):
+        self.ids.connection_dropdown.select("Logging out")
         remove_credentials()
+        self.ids.connection_dropdown.select("Connection")
 
 
 class AgendaMakerApp(App):

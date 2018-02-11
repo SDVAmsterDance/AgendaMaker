@@ -30,27 +30,14 @@
         text: root.value
 
 <MainScreen>:
+    __safe_id: [connection_dropdown.__self__]
+
     BoxLayout:
         orientation: 'horizontal'
         BoxLayout:
             orientation: 'vertical'
             size_hint_x: None
             width: 300
-            BoxLayout:
-                size_hint_y: None
-                height: 30
-
-                Button:
-                    text: 'Make Calendar'
-                    on_release: root.make_calendar()
-
-                Button:
-                    text: 'Get Calendars'
-                    on_release: root.update_calendars()
-
-                Button:
-                    text: 'Logout'
-                    on_release: root.logout()
 
             Accordion:
                 orientation: 'vertical'
@@ -156,17 +143,49 @@
                 orientation: 'horizontal'
                 size_hint_y: None
                 height: dp(44)
-                Button:
-                    text: "Vorige maand"
-                    on_press: root.previous_month()
+                BoxLayout:
+                    orientation: 'horizontal'
+                    Button:
+                        text: "Vorige maand"
+                        on_press: root.previous_month()
 
-                Label:
-                    id: current_month
-                    text: "huidige maand"
+                    Label:
+                        id: current_month
+                        text: "huidige maand"
 
-                Button:
-                    text: "Volgende maand"
-                    on_press: root.next_month()
+                    Button:
+                        text: "Volgende maand"
+                        on_press: root.next_month()
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_x: None
+                    width: dp(250)
+                    id: bubble_buttons
+
+                    Button:
+                        text: 'Make Calendar'
+                        on_release: root.make_calendar()
+
+                    Button:
+                        id: connection_btn
+                        text: 'Connection'
+                        on_release: connection_dropdown.open(self)
+    DropDown:
+        id: connection_dropdown
+        on_select: connection_btn.text = '{}'.format(args[1])
+
+        Button:
+            text: 'Logout'
+            size_hint_y: None
+            height: '48dp'
+            on_release: root.logout()
+
+        Button:
+            text: 'Update calendars'
+            size_hint_y: None
+            height: '48dp'
+            on_release: root.update_calendars()
 
 
 
@@ -328,3 +347,19 @@
 
 <CalendarCheckBoxLabel@Label>:
     halign: 'left'
+
+<CustomDropDown>:
+    Button:
+        text: 'My first Item'
+        size_hint_y: None
+        height: 44
+        on_release: root.select('item1')
+    Label:
+        text: 'Unselectable item'
+        size_hint_y: None
+        height: 44
+    Button:
+        text: 'My second Item'
+        size_hint_y: None
+        height: 44
+        on_release: root.select('item2')
