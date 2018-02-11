@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 
 class Activity:
@@ -17,6 +17,14 @@ class Activity:
         self.location = location
         self.price = price
 
+    def is_multi_day(self) -> bool:
+        if (self.end_date - self.begin_date).days > 0:
+            return True
+        return False
+
+    def draw(self, day: int, week: int, month: int):
+        pass
+
     def __str__(self):
         return "{} {} - {} {}\n{}: {}\n{}\n{}".format(self.begin_date,
                                                       self.begin_time,
@@ -27,10 +35,16 @@ class Activity:
                                                       self.location,
                                                       self.price)
 
-    def is_multi_day(self) -> bool:
-        if (self.end_date - self.begin_date).days > 0:
-            return True
-        return False
+    def __lt__(self, other):
 
-    def draw(self, day: int, week: int, month: int):
-        pass
+        my_datetime = datetime(self.begin_date.year,
+                               self.begin_date.month,
+                               self.begin_date.day,
+                               int(self.begin_time.split(":")[0]),
+                               int(self.begin_time.split(":")[1]))
+        other_datetime = datetime(other.begin_date.year,
+                                  other.begin_date.month,
+                                  other.begin_date.day,
+                                  int(other.begin_time.split(":")[0]),
+                                  int(other.begin_time.split(":")[1]))
+        return my_datetime < other_datetime
