@@ -7,8 +7,6 @@ from os.path import join, isdir
 
 from kivy.app import App
 from kivy.properties import ObjectProperty
-from kivy.uix.bubble import Bubble
-from kivy.uix.button import Button
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.dropdown import DropDown
 from kivy.uix.floatlayout import FloatLayout
@@ -17,7 +15,8 @@ from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.utils import platform
 
-from agenda.draw_agenda import DrawAgenda
+from agenda.draw.draw_agenda import DrawAgenda
+from agenda.draw.draw_flyer import DrawFlyer
 from apis.google_calendar import get_calendars, remove_credentials
 from birthday_email.email import Email
 
@@ -188,12 +187,20 @@ class MainScreen(Screen):
             draw = DrawAgenda(self.month, self.year, internal_activities=self.internal_activities,
                               external_activities=self.external_activities)
             fname = draw.draw_agenda()
-            self.ids.agenda_image.source = fname
+            self.ids._image.source = fname
             self.ids.agenda_image.reload()
             self.persist.set_property("agenda_image", fname)
+        if self.ids.tabs.current_tab.text == "Flyer":
+            draw = DrawFlyer(self.month, self.year, internal_activities=self.internal_activities,
+                              external_activities=self.external_activities)
+            fname = draw.draw_agenda()
+            self.ids.flyer_image.source = fname
+            self.ids.flyer_image.reload()
+            self.persist.set_property("flyer_image", fname)
         elif self.ids.tabs.current_tab.text == "Verjaardagen":
-            email = Email(self.birthdays, self.ids.birthdays_template.text)
-            self.ids.birthdays_mail.text = email.make_email(month=self.month)
+            email = Email(birthdays=self.birthdays, internal_activities=self.internal_activities,
+                              external_activities=self.external_activities, template=self.ids.birthdays_template.text)
+            self.ids.birthdays_mail.text = email.make_email(month=self.month, year=self.year)
 
     def update_calendars(self):
         self.ids.connection_dropdown.select("Updating")
@@ -295,6 +302,8 @@ class AgendaMakerApp(App):
             [x.strip() for x in self.persist.birthdays.split(",")])
         self.root.main_screen.ids.agenda_image.source = self.persist.agenda_image
         self.root.main_screen.ids.agenda_image.reload()
+        self.root.main_screen.ids.flyer_image.source = self.persist.flyer_image
+        self.root.main_screen.ids.flyer_image.reload()
         self.root.main_screen.update_calendars()
 
 

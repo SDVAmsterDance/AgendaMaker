@@ -1,8 +1,11 @@
 from datetime import timedelta, datetime
 
+from agenda.month import Month
+from agenda.weekday import Weekday
+
 
 class Activity:
-    def __init__(self, begin_time, end_time, begin_date, end_date, name, descriptor, location, price="€0/€3"):
+    def __init__(self, begin_time, end_time, begin_date, end_date, name, description, location, price="€0/€3"):
         # Catch faulty user behavior, 00:00 is no longer the same day
         if end_time == "00:00":
             end_time = "23:59"
@@ -13,9 +16,15 @@ class Activity:
         self.begin_date = begin_date
         self.end_date = end_date
         self.name = name
-        self.descriptor = descriptor
+        self.description = description
         self.location = location
         self.price = price
+
+    def get_day_name(self):
+        return Weekday(self.begin_date.weekday()).name
+
+    def get_month_name(self):
+        return Month(self.begin_date.month).name
 
     def is_multi_day(self) -> bool:
         if (self.end_date - self.begin_date).days > 0:
@@ -31,7 +40,7 @@ class Activity:
                                                       self.end_date,
                                                       self.end_time,
                                                       self.name,
-                                                      self.descriptor,
+                                                      self.description,
                                                       self.location,
                                                       self.price)
 

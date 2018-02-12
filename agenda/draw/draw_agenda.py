@@ -8,7 +8,8 @@ from collections import defaultdict
 import agenda.utils.text as text
 from agenda.activity.activity import Activity
 from agenda.activity_type import ActivityType
-from agenda.utils import style, shapes
+from agenda.utils import shapes
+from agenda.utils import agenda_style as style
 from agenda.weekday import Weekday
 from apis.google_calendar import get_events
 

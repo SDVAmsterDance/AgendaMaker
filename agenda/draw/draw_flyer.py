@@ -1,6 +1,4 @@
 import datetime
-import math
-from typing import Tuple
 
 from PIL import Image, ImageDraw
 from collections import defaultdict
@@ -8,8 +6,8 @@ from collections import defaultdict
 import agenda.utils.text as text
 from agenda.activity.activity import Activity
 from agenda.activity_type import ActivityType
-from agenda.utils import style, shapes
-from agenda.weekday import Weekday
+from agenda.utils import shapes
+from agenda.utils import flyer_style as style
 from apis.google_calendar import get_events
 from calendar import monthrange
 
