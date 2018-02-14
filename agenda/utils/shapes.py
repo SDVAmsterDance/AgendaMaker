@@ -1,192 +1,116 @@
-from typing import Tuple, Union, List
+from typing import Union, Tuple
 
-from PIL import ImageDraw, ImageFont
+from PIL import ImageFont, ImageDraw
 
-from agenda.activity.activity import Activity
-from agenda.utils import style, text
-
-import numpy as np
-
-Y_MIN = style.scale * 10
-X_MIN = style.scale * 20
-X_MAX = style.scale * 35
+from agenda.utils import text
+from agenda.utils.style import Style
 
 
-def _draw_internal_date(draw: ImageDraw, date: str, x: Union[int, float], y0: Union[int, float],
-                        y1: Union[int, float], background_color: Tuple[int, int, int], text_color: Tuple[int, int, int],
-                        font: ImageFont):
-    """Draw the date on a specified position x on the event card."""
-    card_height = (y1 + Y_MIN) - (y0 - Y_MIN)
-    slope_width = X_MAX - X_MIN
-    date_width = style.scale * 14
-    draw.polygon([(x + X_MAX - date_width, y0 - Y_MIN),
-                  (x + X_MAX, y0 - Y_MIN),
-                  (x + X_MAX - date_width / (card_height / slope_width), y0 - Y_MIN + date_width),
-                  (x + X_MAX - date_width, y0 - Y_MIN + date_width)],
-                 fill=background_color)
+class Shape:
+    def __init__(self, x1=0, x0=0, y1=0, y0=0, style=Style()):
+        self.x1 = x1
+        self.x0 = x0
+        self.y0 = y0
+        self.y1 = y1
 
-    text_x0 = text.vertical_center_text(date, font,
-                                        x_min=x + X_MAX - date_width, x_max=x + X_MAX - (style.scale * 3))
+        self.style = style
 
-    draw.text((text_x0, y0 - Y_MIN),
-              date,
-              font=font,
-              fill=text_color)
+        self.Y_MIN = style.scale * 10
+        self.X_MAX = style.scale * 35
+        self.X_MIN = style.scale * 20
 
+        self.top_part = []
+        self.right_part = []
+        self.bottom_part = []
+        self.left_part = []
 
-def _draw_external_date(draw: ImageDraw, date: str, x: Union[int, float], y0: Union[int, float],
-                        y1: Union[int, float], background_color: Tuple[int, int, int], text_color: Tuple[int, int, int],
-                        font: ImageFont):
-    """Draw the date on a specified position x on the event card."""
-    card_horizontal_middle = (y1 + y0) / 2
-    half_card_height = card_horizontal_middle - (y0 - Y_MIN)
-    # red date
-    slope_width = X_MAX - X_MIN
-    half_date_height = font.getsize(date)[1] / 2
-    intersect = (half_date_height / half_card_height) * slope_width
-    draw.polygon([(x + X_MIN, card_horizontal_middle - half_date_height),
-                  (x + X_MAX - intersect, card_horizontal_middle - half_date_height),
-                  (x + X_MAX, card_horizontal_middle),
-                  (x + X_MAX - intersect, card_horizontal_middle + half_date_height),
-                  (x + X_MIN, card_horizontal_middle + half_date_height)],
-                 fill=background_color)
+    def get_shape(self):
+        return self.top_part + self.right_part + self.bottom_part + self.left_part
 
-    text_x0 = text.vertical_center_text(date, font,
-                                        x_min=x + X_MIN, x_max=x + X_MAX - (style.scale * 3))
+    def set_cut(self, cut):
+        card_horizontal_middle = (self.y0 + self.y1) / 2
+        if 'l' in cut:
+            self.left_part = [(self.x0 - self.X_MAX, self.y1 + self.Y_MIN),
+                              (self.x0 - self.X_MAX, card_horizontal_middle + 10 * self.style.scale),
+                              (self.x0 - self.X_MIN - 2 * self.style.scale,
+                               card_horizontal_middle - 10 * self.style.scale),
+                              (self.x0 - self.X_MIN - 2 * self.style.scale, self.y0 - self.Y_MIN)]
+        if 'r' in cut:
+            self.right_part = [(self.x1 + self.X_MAX, self.y0 - self.Y_MIN),
+                               (self.x1 + self.X_MAX, card_horizontal_middle - 10 * self.style.scale),
+                               (self.x1 + self.X_MIN - 2 * self.style.scale,
+                                card_horizontal_middle + 10 * self.style.scale),
+                               (self.x1 + self.X_MIN - 2 * self.style.scale, self.y1 + self.Y_MIN)]
+        return self
 
-    draw.text((text_x0, card_horizontal_middle - half_date_height - (style.scale * 1)),
-              date,
-              font=font,
-              fill=text_color)
+    def draw_date(self, draw: ImageDraw, date: str, background_color: Tuple[int, int, int],
+                  text_color: Tuple[int, int, int], font: ImageFont):
+        pass
 
 
-def _draw_all_dates(start, date, draw, width, y0, y1, background_color, text_color, font, date_shape_function):
-    # Draw date boxes on every day of the event
-    start_day = start[0]
-    dates = [str(dat) for dat in np.arange(int(date[0]), int(date[1]) + 1, 1)]
-    margin = style.scale * 40
-    for i, date in enumerate(dates):
-        x = ((start_day + 1 + i) * (width / 7)) - margin
-        date_shape_function(draw, date, x, y0, y1, background_color, text_color, font)
+class Paralellogram(Shape):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.right_part = [(self.x1 + self.X_MAX, self.y0 - self.Y_MIN),
+                           (self.x1 + self.X_MIN, self.y1 + self.Y_MIN)]
+        self.left_part = [(self.x0 - self.X_MAX, self.y1 + self.Y_MIN),
+                          (self.x0 - self.X_MIN, self.y0 - self.Y_MIN)]
+
+    def draw_date(self, draw: ImageDraw, date: str, background_color: Tuple[int, int, int],
+                  text_color: Tuple[int, int, int], font: ImageFont):
+        """Draw the date on a specified position x on the event card."""
+        card_height = (self.y1 + self.Y_MIN) - (self.y0 - self.Y_MIN)
+        slope_width = self.X_MAX - self.X_MIN
+        date_width = self.style.scale * 14
+        draw.polygon([(self.x1 + self.X_MAX - date_width, self.y0 - self.Y_MIN),
+                      (self.x1 + self.X_MAX, self.y0 - self.Y_MIN),
+                      (self.x1 + self.X_MAX - date_width / (card_height / slope_width),
+                       self.y0 - self.Y_MIN + date_width),
+                      (self.x1 + self.X_MAX - date_width, self.y0 - self.Y_MIN + date_width)],
+                     fill=background_color)
+
+        text_x0 = text.vertical_center_text(date, font,
+                                            x_min=self.x1 + self.X_MAX - date_width,
+                                            x_max=self.x1 + self.X_MAX - (self.style.scale * 3))
+
+        draw.text((text_x0, self.y0 - self.Y_MIN),
+                  date,
+                  font=font,
+                  fill=text_color)
 
 
-def _draw_multi_day_details(draw, activity: Activity, font, text_color, spacing, x0, x1, y):
-    start_time = "{}-...".format(activity.begin_time)
-    end_time = "...-{}".format(activity.end_time)
+class Hexagon(Shape):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        card_horizontal_middle = (self.y0 + self.y1) / 2
+        self.right_part = [(self.x1 + self.X_MIN, self.y0 - self.Y_MIN),
+                           (self.x1 + self.X_MAX, card_horizontal_middle),
+                           (self.x1 + self.X_MIN, self.y1 + self.Y_MIN)]
+        self.left_part = [(self.x0 - self.X_MIN, self.y1 + self.Y_MIN),
+                          (self.x0 - self.X_MAX, card_horizontal_middle),
+                          (self.x0 - self.X_MIN, self.y0 - self.Y_MIN)]
 
-    # Draw the details in the event box
-    draw.multiline_text((x0 - X_MIN, y), start_time, font=font, fill=text_color, spacing=spacing)
-    draw.multiline_text((x1 - X_MIN, y), end_time, font=font, fill=text_color, spacing=spacing)
-    if activity.location:
-        y += (style.scale * 10)
-        draw.multiline_text((x0 - X_MIN, y), activity.location, font=font, fill=text_color, spacing=spacing)
-    y += (style.scale * 10)
-    draw.multiline_text((x0 - X_MIN, y), activity.price, font=font, fill=text_color, spacing=spacing)
+    def draw_date(self, draw: ImageDraw, date: str, background_color: Tuple[int, int, int],
+                  text_color: Tuple[int, int, int], font: ImageFont):
+        """Draw the date on a specified position x on the event card."""
+        card_horizontal_middle = (self.y1 + self.y0) / 2
+        half_card_height = card_horizontal_middle - (self.y0 - self.Y_MIN)
+        # red date
+        slope_width = self.X_MAX - self.X_MIN
+        half_date_height = font.getsize(date)[1] / 2
+        intersect = (half_date_height / half_card_height) * slope_width
+        draw.polygon([(self.x1 + self.X_MIN, card_horizontal_middle - half_date_height),
+                      (self.x1 + self.X_MAX - intersect, card_horizontal_middle - half_date_height),
+                      (self.x1 + self.X_MAX, card_horizontal_middle),
+                      (self.x1 + self.X_MAX - intersect, card_horizontal_middle + half_date_height),
+                      (self.x1 + self.X_MIN, card_horizontal_middle + half_date_height)],
+                     fill=background_color)
 
+        text_x0 = text.vertical_center_text(date, font,
+                                            x_min=self.x1 + self.X_MIN,
+                                            x_max=self.x1 + self.X_MAX - (self.style.scale * 3))
 
-def card(draw: ImageDraw = None, x0: Union[int, float] = 0, x1: Union[int, float] = 0, y0: Union[int, float] = 0,
-         y1: Union[int, float] = 0, background_color: Tuple[int, int, int] = (0, 0, 0),
-         date_background_color: Tuple[int, int, int] = (0, 0, 0), text_color: Tuple[int, int, int] = (0, 0, 0),
-         title_color: Tuple[int, int, int] = (0, 0, 0), date_text_color: Tuple[int, int, int] = (0, 0, 0),
-         title: str = "", date: tuple = (), start: Tuple[int, int] = None,
-         width: Union[int, float] = -1, activity: Activity = None, shape=List[Tuple],
-         date_function=_draw_internal_date):
-    # black card
-    """
-
-    :param draw:
-    :param x0:
-    :param x1:
-    :param y0:
-    :param y1:
-    :param background_color:
-    :param date_background_color:
-    :param text_color:
-    :param title_color:
-    :param date_text_color:
-    :param title:
-    :param date:
-    :param start:
-    :param width:
-    :param activity: the event to draw
-    :param shape: a list of points (x, y) to draw a polygon
-    :param date_function: function reference that draws the dates
-    """
-    draw.polygon(shape,
-                 fill=background_color)
-
-    font = style.font(size=style.scale * 16)
-    spacing = style.scale * -2
-    y = y0 - Y_MIN
-    title = text.wrap(string=title, font=font, width=(x1 + X_MIN) - (x0 - X_MIN))
-
-    draw.multiline_text((x0 - X_MIN, y), title, font=font, fill=title_color, spacing=spacing)
-    font = style.font(size=style.scale * 13)
-    y += 2 * (style.scale * 14)  # 14 because that seems to be the line height
-
-    # Single day vs multi day events
-    if date[0] == date[1]:
-        # Draw date box
-        date_function(draw, date[0], x1, y0, y1, date_background_color, date_text_color, font)
-
-        if activity.location:
-            details = "{}-{}\n{}\n{}".format(activity.begin_time, activity.end_time, activity.location, activity.price)
-        else:
-            details = "{}-{}\n{}".format(activity.begin_time, activity.end_time, activity.price)
-        # Draw event details
-        draw.multiline_text((x0 - X_MIN, y), details, font=font, fill=text_color, spacing=spacing)
-    else:
-        # Draw date boxes on every day of the event
-        _draw_all_dates(start, date, draw, width, y0, y1, date_background_color, date_text_color, font,
-                        date_function)
-        _draw_multi_day_details(draw, activity, font, text_color, spacing, x0, x1, y)
-
-
-def internal_card(x1, x0, y1, y0, cut='', **kwargs) -> None:
-    card_horizontal_middle = (y0 + y1) / 2
-    if 'l' in cut:
-        left_side = [(x0 - X_MAX, y1 + Y_MIN),
-                     (x0 - X_MAX, card_horizontal_middle + 10 * style.scale),
-                     (x0 - X_MIN - 2 * style.scale, card_horizontal_middle - 10 * style.scale),
-                     (x0 - X_MIN - 2 * style.scale, y0 - Y_MIN)]
-    else:
-        left_side = [(x0 - X_MAX, y1 + Y_MIN),
-                     (x0 - X_MIN, y0 - Y_MIN)]
-    if 'r' in cut:
-        right_side = [(x1 + X_MAX, y0 - Y_MIN),
-                      (x1 + X_MAX, card_horizontal_middle - 10 * style.scale),
-                      (x1 + X_MIN - 2 * style.scale, card_horizontal_middle + 10 * style.scale),
-                      (x1 + X_MIN - 2 * style.scale, y1 + Y_MIN)]
-    else:
-        right_side = [(x1 + X_MAX, y0 - Y_MIN),
-                      (x1 + X_MIN, y1 + Y_MIN)]
-
-    shape = left_side + right_side
-
-    card(shape=shape, date_function=_draw_internal_date, x0=x0, x1=x1, y0=y0, y1=y1, **kwargs)
-
-
-def external_card(x1, x0, y1, y0, cut='', **kwargs):
-    card_horizontal_middle = (y0 + y1) / 2
-
-    if 'l' in cut:
-        left_side = [(x0 - X_MAX, y1 + Y_MIN),
-                     (x0 - X_MAX, card_horizontal_middle + 10 * style.scale),
-                     (x0 - X_MIN - 2 * style.scale, card_horizontal_middle - 10 * style.scale),
-                     (x0 - X_MIN - 2 * style.scale, y0 - Y_MIN)]
-    else:
-        left_side = [(x0 - X_MIN, y1 + Y_MIN),
-                     (x0 - X_MAX, card_horizontal_middle),
-                     (x0 - X_MIN, y0 - Y_MIN)]
-    if 'r' in cut:
-        right_side = [(x1 + X_MAX, y0 - Y_MIN),
-                      (x1 + X_MAX, card_horizontal_middle - 10 * style.scale),
-                      (x1 + X_MIN - 2 * style.scale, card_horizontal_middle + 10 * style.scale),
-                      (x1 + X_MIN - 2 * style.scale, y1 + Y_MIN)]
-    else:
-        right_side = [(x1 + X_MIN, y0 - Y_MIN),
-                      (x1 + X_MAX, card_horizontal_middle),
-                      (x1 + X_MIN, y1 + Y_MIN)]
-
-    shape = left_side + right_side
-    card(shape=shape, date_function=_draw_external_date, x0=x0, x1=x1, y0=y0, y1=y1, **kwargs)
+        draw.text((text_x0, card_horizontal_middle - half_date_height - (self.style.scale * 1)),
+                  date,
+                  font=font,
+                  fill=text_color)

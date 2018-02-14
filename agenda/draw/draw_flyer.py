@@ -1,15 +1,16 @@
 import datetime
-
-from PIL import Image, ImageDraw
+from calendar import monthrange
 from collections import defaultdict
 
-import agenda.utils.text as text
+from PIL import Image, ImageDraw
+
 from agenda.activity.activity import Activity
 from agenda.activity_type import ActivityType
-from agenda.utils import shapes
-from agenda.utils import flyer_style as style
+from agenda.utils import cards, text
+from agenda.utils import style as st
 from apis.google_calendar import get_events
-from calendar import monthrange
+
+style = st.FlyerStyle()
 
 
 class DrawFlyer:
@@ -17,7 +18,7 @@ class DrawFlyer:
     height = 1179
     header_height = 90
     weekdays_height = 60
-    font_size = 25
+    font_size = 12
     calendar_start_y = header_height + weekdays_height
     debug = False
 
@@ -51,7 +52,7 @@ class DrawFlyer:
         # self.im.thumbnail((self.width/style.scale, self.height/style.scale), Image.BICUBIC)
         date = datetime.date(self.year, self.month, 1)
         month_text = date.strftime("%B%Y")
-        fname = '{}.png'.format(month_text)
+        fname = 'flyer-{}.png'.format(month_text)
         self.im.save(fname, "png")
         return fname
 
@@ -67,12 +68,13 @@ class DrawFlyer:
         self.draw.line([margin_left, self.header_height, self.width - (style.scale * 220), self.header_height],
                        fill=style.color['black'])
 
+        month_text_font = style.font(size=2*self.font_size)
         self.draw.text(
             xy=[self.width - (style.scale * 210),
-                (style.scale * 2) + self.header_height - style.font(size=self.font_size).getsize(month_text)[1]],
+                (style.scale * 2) + self.header_height - month_text_font.getsize(month_text)[1]],
             text=month_text,
             fill=style.color['black'],
-            font=style.font(size=self.font_size))
+            font=month_text_font)
 
         self.draw.polygon([(margin_left, self.header_height - 1),
                            (margin_left, self.header_height - banner_height),
@@ -86,7 +88,7 @@ class DrawFlyer:
         text.small_caps(self.draw,
                         (margin_left + (style.scale * 10), text_y0),
                         header_text,
-                        font=style.font(size=banner_height),
+                        font=style.font(size=int(banner_height/style.scale)),
                         fill=style.color["white"]
                         )
 
@@ -95,31 +97,21 @@ class DrawFlyer:
                        fill=style.color["black"])
 
     def draw_activities(self, start_date, end_date):
-        internal_events_calendarIDs = self.internal_activities
-        external_events_calendarIDs = self.external_activities
+        internal_events_calendar_ids = self.internal_activities
+        external_events_calendar_ids = self.external_activities
         activity_list = []
-        for calendarID in internal_events_calendarIDs:
-            if calendarID:
-                activity_list += [(event, ActivityType.INTERN) for event in get_events(calendarId=calendarID,
+        for calendar_id in internal_events_calendar_ids:
+            if calendar_id:
+                activity_list += [(event, ActivityType.INTERN) for event in get_events(calendarId=calendar_id,
                                                                                        start_date=start_date,
                                                                                        end_date=end_date)]
 
-        for calendarID in external_events_calendarIDs:
-            if calendarID:
-                activity_list += [(event, ActivityType.EXTERN) for event in get_events(calendarId=calendarID,
+        for calendar_id in external_events_calendar_ids:
+            if calendar_id:
+                activity_list += [(event, ActivityType.EXTERN) for event in get_events(calendarId=calendar_id,
                                                                                        start_date=start_date,
                                                                                        end_date=end_date)]
         self.draw_flyer_activities(sorted(activity_list))
-
-    def draw_calendar_activities(self, calendarID, start_date, end_date,
-                                 activity_type: ActivityType = ActivityType.INTERN):
-        events = get_events(calendarId=calendarID, start_date=start_date,
-                            end_date=end_date)
-        for event in events:
-            if activity_type is ActivityType.INTERN:
-                self.draw_internal_activity(activity=event)
-            else:
-                self.draw_external_activity(activity=event)
 
     def draw_flyer_activities(self, activity_list):
 
@@ -154,10 +146,11 @@ class DrawFlyer:
             "width": self.width
         }
 
-        x0, x1, y0, y1 = self.calculate_card_size(margin=style.scale * 40, activity_index=activity_index, num_activities=num_activities)
-        activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, **params)
+        x0, x1, y0, y1 = self.calculate_card_size(margin=style.scale * 50, activity_index=activity_index,
+                                                  num_activities=num_activities)
+        activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, style=style, **params)
 
-    def draw_internal_activity(self, activity: Activity, activity_index: int, num_activities:int) -> None:
+    def draw_internal_activity(self, activity: Activity, activity_index: int, num_activities: int) -> None:
         background_color = style.color['black']
         title_color = style.color['white']
         date_text_color = style.color['white']
@@ -174,9 +167,10 @@ class DrawFlyer:
                       'date_background_color': date_background_color,
                       'text_color': text_color,
                       'date_text_color': date_text_color}
-        self.draw_activity(activity, card_style, shapes.internal_card, activity_index=activity_index, num_activities=num_activities)
+        self.draw_activity(activity, card_style, cards.internal_card, activity_index=activity_index,
+                           num_activities=num_activities)
 
-    def draw_external_activity(self, activity: Activity, activity_index: int, num_activities:int) -> None:
+    def draw_external_activity(self, activity: Activity, activity_index: int, num_activities: int) -> None:
         background_color = style.color['dred']
         title_color = style.color['lred']
         date_text_color = style.color['white']
@@ -193,10 +187,11 @@ class DrawFlyer:
                       'date_background_color': date_background_color,
                       'text_color': text_color,
                       'date_text_color': date_text_color}
-        self.draw_activity(activity, card_style, shapes.external_card, activity_index=activity_index, num_activities=num_activities)
+        self.draw_activity(activity, card_style, cards.external_card, activity_index=activity_index,
+                           num_activities=num_activities)
 
     def calculate_card_size(self, activity_index, num_activities, margin):
-        card_width = 700
+        card_width = 600
         row_height = (self.height - self.calendar_start_y) / num_activities
 
         x0 = (self.width / 2) - (card_width / 2)
