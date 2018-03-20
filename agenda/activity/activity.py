@@ -44,6 +44,9 @@ class Activity:
                                                       self.location,
                                                       self.price)
 
+    def __repr__(self):
+        return "<Activity {} {}>".format(self.name, self.begin_date)
+
     def __lt__(self, other):
 
         my_datetime = datetime(self.begin_date.year,

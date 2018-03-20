@@ -187,7 +187,7 @@ class MainScreen(Screen):
             draw = DrawAgenda(self.month, self.year, internal_activities=self.internal_activities,
                               external_activities=self.external_activities)
             fname = draw.draw_agenda()
-            self.ids._image.source = fname
+            self.ids.agenda_image.source = fname
             self.ids.agenda_image.reload()
             self.persist.set_property("agenda_image", fname)
         if self.ids.tabs.current_tab.text == "Flyer":

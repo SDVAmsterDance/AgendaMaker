@@ -38,11 +38,15 @@ class DrawFlyer:
         self.im = Image.new("RGB", (self.width, self.height), "white")
         self.draw = ImageDraw.Draw(self.im)
 
+        self.card = cards.Card(style=style)
+
     def _make_agenda_image(self):
         self.draw_header()
         self.draw_squiggles()
         start_date = datetime.date(self.year, self.month, 1)
-        end_date = datetime.date(self.year, self.month, monthrange(2012, 2)[1] - 1)
+        end_date = datetime.date(self.year, self.month, monthrange(self.year, self.month)[1]) + datetime.timedelta(
+            days=1)
+
         self.draw_activities(start_date=start_date, end_date=end_date)
         if self.debug:
             self.draw_debug()
@@ -68,7 +72,7 @@ class DrawFlyer:
         self.draw.line([margin_left, self.header_height, self.width - (style.scale * 220), self.header_height],
                        fill=style.color['black'])
 
-        month_text_font = style.font(size=2*self.font_size)
+        month_text_font = style.font(size=2 * self.font_size)
         self.draw.text(
             xy=[self.width - (style.scale * 210),
                 (style.scale * 2) + self.header_height - month_text_font.getsize(month_text)[1]],
@@ -88,7 +92,7 @@ class DrawFlyer:
         text.small_caps(self.draw,
                         (margin_left + (style.scale * 10), text_y0),
                         header_text,
-                        font=style.font(size=int(banner_height/style.scale)),
+                        font=style.font(size=int(banner_height / style.scale)),
                         fill=style.color["white"]
                         )
 
@@ -116,7 +120,7 @@ class DrawFlyer:
     def draw_flyer_activities(self, activity_list):
 
         for i, (event, activity_type) in enumerate(activity_list):
-            print(i, event, activity_type)
+            # print(i, event.name, event.begin_date, activity_type)
             if activity_type is ActivityType.INTERN:
                 self.draw_internal_activity(activity=event, activity_index=i, num_activities=len(activity_list))
             else:
@@ -146,9 +150,18 @@ class DrawFlyer:
             "width": self.width
         }
 
-        x0, x1, y0, y1 = self.calculate_card_size(margin=style.scale * 50, activity_index=activity_index,
+        x0, x1, y0, y1 = self.calculate_card_size(margin=style.scale * style.margin, activity_index=activity_index,
                                                   num_activities=num_activities)
         activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, style=style, **params)
+
+        if self.debug:
+            # raw rectangle
+            self.draw.rectangle([x0, y0, x1, y1], outline="blue")
+            # maximum size of card
+            self.draw.rectangle([x0 - style.X_MAX, y0 - style.Y_MIN, x1 + style.X_MAX, y1 + style.Y_MIN],
+                                outline="green")
+            # Safe rectangle to write in
+            self.draw.rectangle([x0 - style.X_MIN, y0, x1 + style.X_MIN, y1], outline="red")
 
     def draw_internal_activity(self, activity: Activity, activity_index: int, num_activities: int) -> None:
         background_color = style.color['black']
@@ -167,7 +180,8 @@ class DrawFlyer:
                       'date_background_color': date_background_color,
                       'text_color': text_color,
                       'date_text_color': date_text_color}
-        self.draw_activity(activity, card_style, cards.internal_card, activity_index=activity_index,
+
+        self.draw_activity(activity, card_style, self.card.internal_card, activity_index=activity_index,
                            num_activities=num_activities)
 
     def draw_external_activity(self, activity: Activity, activity_index: int, num_activities: int) -> None:
@@ -187,18 +201,23 @@ class DrawFlyer:
                       'date_background_color': date_background_color,
                       'text_color': text_color,
                       'date_text_color': date_text_color}
-        self.draw_activity(activity, card_style, cards.external_card, activity_index=activity_index,
+        self.draw_activity(activity, card_style, self.card.external_card, activity_index=activity_index,
                            num_activities=num_activities)
 
     def calculate_card_size(self, activity_index, num_activities, margin):
-        card_width = 600
+        if len(margin) == 1:
+            y_margin = x_margin = margin
+        else:
+            x_margin, y_margin = margin
+
+        card_width = 600 - x_margin
         row_height = (self.height - self.calendar_start_y) / num_activities
 
         x0 = (self.width / 2) - (card_width / 2)
         x1 = (self.width / 2) + (card_width / 2)
 
         y0 = self.calendar_start_y + activity_index * row_height
-        y1 = y0 + row_height - margin
+        y1 = y0 + row_height - y_margin
         return x0, x1, y0, y1
 
     def draw_debug(self):
