@@ -2,9 +2,12 @@ from datetime import timedelta, datetime
 
 from agenda.month import Month
 from agenda.weekday import Weekday
-
+import re
 
 class Activity:
+    _price_finder = re.compile('Prijs:\s*(€(\d+,\d{2}|\d+)/€(\d+,\d{2}|\d+))')
+    _price_splitter = re.compile('€(\d+,\d{2}|\d+)/€(\d+,\d{2}|\d+)')
+
     def __init__(self, begin_time, end_time, begin_date, end_date, name, description, location, price="€0/€3"):
         # Catch faulty user behavior, 00:00 is no longer the same day
         if end_time == "00:00":
@@ -16,9 +19,23 @@ class Activity:
         self.begin_date = begin_date
         self.end_date = end_date
         self.name = name
+        self._description = ""
+        self.price = price
         self.description = description
         self.location = location
-        self.price = price
+
+    @property
+    def description(self):
+        return self._description
+
+    @description.setter
+    def description(self, description):
+        m = self._price_finder.search(description)
+        if m:
+            description = self._price_finder.sub("", description)
+            member, non_member = self._price_splitter.search(m.group()).groups()
+            self.price = "€{}/€{}".format(member, non_member)
+        self._description = description
 
     def get_day_name(self):
         return Weekday(self.begin_date.weekday()).name
