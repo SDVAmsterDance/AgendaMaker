@@ -19,7 +19,7 @@ from kivy.utils import platform
 from agenda.draw.draw_agenda import DrawAgenda
 from agenda.draw.draw_flyer import DrawFlyer
 from apis.google_calendar import get_calendars, remove_credentials, copy_events
-from apis.google_mail import create_message, send_message
+from apis.google_mail import create_message, send_message, create_draft
 from birthday_email.email import Email
 
 try:
@@ -315,14 +315,16 @@ class MainScreen(Screen):
         if self.ids.tabs.current_tab.text == "Verjaardagen":
             self.ids.connection_dropdown.select("Exporting")
             message_text = self.ids.birthdays_mail.text
-            message = create_message('Bestuur SDV AmsterDance <bestuur@sdvamsterdance.nl>', 'erikvane@gmail.com',
-                                     'Agenda AmsterDance', message_text=message_text)
-            send_message(user_id='me', message=message)
+            message = create_message('Bestuur SDV AmsterDance <bestuur@sdvamsterdance.nl>', '',
+                                     'Agenda AmsterDance ' + Maand(self.month).name, message_text=message_text)
+            create_draft(user_id='me', message=message)
             self.ids.connection_dropdown.select("Connection")
         else:
             content = WarningPopup(message="Is de mail al gemaakt?", cancel=self.dismiss_popup)
             self._popup = MessagePopup(title="Error", content=content)
             self._popup.open()
+
+
 
 
 class AgendaMakerApp(App):
