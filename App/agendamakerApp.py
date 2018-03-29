@@ -200,7 +200,7 @@ class MainScreen(Screen):
             self.persist.set_property("agenda_image", fname)
         if self.ids.tabs.current_tab.text == "Flyer":
             draw = DrawFlyer(self.month, self.year, internal_activities=self.internal_activities,
-                             external_activities=self.external_activities)
+                             external_activities=self.external_activities, language=lang)
             fname = draw.draw_agenda()
             self.ids.flyer_image.source = fname
             self.ids.flyer_image.reload()

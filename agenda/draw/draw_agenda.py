@@ -7,6 +7,7 @@ from PIL import Image, ImageDraw
 
 from agenda.activity.activity import Activity
 from agenda.activity_type import ActivityType
+from agenda.month import Maand, Month
 from agenda.utils import style as st
 from agenda.utils import cards, text
 from agenda.weekday import Weekday, Weekdag
@@ -44,8 +45,10 @@ class DrawAgenda:
 
         if language == 'nl':
             self.daynames = Weekdag
+            self.monthname = Maand
         elif language == 'en':
             self.daynames = Weekday
+            self.monthname = Month
         else:
             self.daynames = Weekdag
 
@@ -74,8 +77,7 @@ class DrawAgenda:
         banner_width = style.scale * 500
         header_text = "AmsterDance"
 
-        date = datetime.date(self.year, self.month, 1)
-        month_text = date.strftime("%B %Y")
+        month_text = "{} {}".format(self.monthname(self.month).name, self.year)
 
         self.draw.line([margin_left, self.header_height, self.width - (style.scale * 220), self.header_height],
                        fill=style.color['black'])

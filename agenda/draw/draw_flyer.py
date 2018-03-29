@@ -6,6 +6,7 @@ from PIL import Image, ImageDraw
 
 from agenda.activity.activity import Activity
 from agenda.activity_type import ActivityType
+from agenda.month import Maand, Month
 from agenda.utils import cards, text
 from agenda.utils import style as st
 from apis.google_calendar import get_events
@@ -22,7 +23,7 @@ class DrawFlyer:
     calendar_start_y = header_height + weekdays_height
     debug = False
 
-    def __init__(self, month, year, internal_activities, external_activities):
+    def __init__(self, month, year, internal_activities, external_activities, language='nl'):
         self.width *= style.scale
         self.height *= style.scale
         self.header_height *= style.scale
@@ -39,6 +40,13 @@ class DrawFlyer:
         self.draw = ImageDraw.Draw(self.im)
 
         self.card = cards.Card(style=style)
+
+        if language == 'nl':
+            self.monthname = Maand
+        elif language == 'en':
+            self.monthname = Month
+        else:
+            self.monthname = Maand
 
     def _make_agenda_image(self):
         self.draw_header()
@@ -66,8 +74,7 @@ class DrawFlyer:
         banner_width = style.scale * 500
         header_text = "AmsterDance"
 
-        date = datetime.date(self.year, self.month, 1)
-        month_text = date.strftime("%B %Y")
+        month_text = "{} {}".format(self.monthname(self.month).name, self.year)
 
         self.draw.line([margin_left, self.header_height, self.width - (style.scale * 220), self.header_height],
                        fill=style.color['black'])
