@@ -50,6 +50,13 @@ class Activity:
         if lang == "en":
             return Month(self.begin_date.month).name
 
+    def get_written_date(self, lang='nl'):
+        ordinal = lambda n: "%d%s" % (n, "tsnrhtdd"[(n / 10 % 10 != 1) * (n % 10 < 4) * n % 10::4])
+        if lang=='nl':
+            return "{} {}".format(self.begin_date.weekday(), Maand(self.begin_date.month).name)
+        elif lang == 'en':
+            return "{} of {}".format(ordinal(self.begin_date.weekday()), Month(self.begin_date.month).name)
+
     def is_multi_day(self) -> bool:
         if (self.end_date - self.begin_date).days > 0:
             return True

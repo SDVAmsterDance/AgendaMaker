@@ -206,8 +206,16 @@ class MainScreen(Screen):
             self.ids.flyer_image.reload()
             self.persist.set_property("flyer_image", fname)
         elif self.ids.tabs.current_tab.text == "Verjaardagen":
-            email = Email(birthdays=self.birthdays, internal_activities=self.internal_activities,
-                          external_activities=self.external_activities, template=self.ids.birthdays_template.text)
+            self.set_internal_activities(self.ids.internal_activities.text)
+            self.set_external_activities(self.ids.external_activities.text)
+            internal_activities = self.internal_activities
+            external_activities = self.external_activities
+            self.set_internal_activities(self.ids.translation_calendar_intern.text)
+            self.set_external_activities(self.ids.translation_calendar_extern.text)
+            internal_activities_en = self.internal_activities
+            external_activities_en = self.external_activities
+            email = Email(birthdays=self.birthdays, internal_activities=internal_activities,
+                          external_activities=external_activities, internal_activities_en=internal_activities_en, external_activities_en=external_activities_en, template=self.ids.birthdays_template.text)
             self.ids.birthdays_mail.text = email.make_email(month=self.month, year=self.year)
 
     def update_calendars(self):
