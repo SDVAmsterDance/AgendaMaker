@@ -68,6 +68,31 @@ def create_message(sender, to, subject, message_text):
     message['subject'] = subject
     return {'raw': base64.urlsafe_b64encode(message.as_string().encode()).decode()}
 
+def create_draft(user_id, message):
+  """Create and insert a draft email. Print the returned draft's message and id.
+
+  Args:
+    service: Authorized Gmail API service instance.
+    user_id: User's email address. The special value "me"
+    can be used to indicate the authenticated user.
+    message_body: The body of the email message, including headers.
+
+  Returns:
+    Draft object, including draft id and message meta data.
+  """
+
+  credentials = get_credentials()
+  http = credentials.authorize(httplib2.Http())
+  service = discovery.build('gmail', 'v1', http=http)
+  try:
+    message = {'message': message}
+    draft = service.users().drafts().create(userId=user_id, body=message).execute()
+
+    print('Draft id: %s\nDraft message: %s' % (draft['id'], draft['message']))
+
+    return draft
+  except HttpError as error:
+    print('An error occurred: %s' % error)
 
 def send_message(user_id, message):
     """Send an email message.
