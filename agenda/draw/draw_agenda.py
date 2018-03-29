@@ -9,7 +9,7 @@ from agenda.activity.activity import Activity
 from agenda.activity_type import ActivityType
 from agenda.utils import style as st
 from agenda.utils import cards, text
-from agenda.weekday import Weekday
+from agenda.weekday import Weekday, Weekdag
 from apis.google_calendar import get_events
 
 style = st.AgendaStyle()
@@ -22,9 +22,9 @@ class DrawAgenda:
     weekdays_height = 60
     font_size = 12
     calendar_start_y = header_height + weekdays_height
-    debug = True
+    debug = False
 
-    def __init__(self, month, year, internal_activities, external_activities):
+    def __init__(self, month, year, internal_activities, external_activities, language='nl'):
         self.width *= style.scale
         self.height *= style.scale
         self.header_height *= style.scale
@@ -41,6 +41,14 @@ class DrawAgenda:
         self.draw = ImageDraw.Draw(self.im)
 
         self.card = cards.Card(style=style)
+
+        if language == 'nl':
+            self.daynames = Weekdag
+        elif language == 'en':
+            self.daynames = Weekday
+        else:
+            self.daynames = Weekdag
+
 
     def _make_agenda_image(self):
         self.draw_header()
@@ -91,7 +99,7 @@ class DrawAgenda:
         text.small_caps(self.draw,
                         (margin_left + (style.scale * 10), text_y0),
                         header_text,
-                        font=style.font(size=int(banner_height/style.scale)),
+                        font=style.font(size=int(banner_height / style.scale)),
                         fill=style.color["white"]
                         )
 
@@ -133,7 +141,7 @@ class DrawAgenda:
                        fill=style.color["white"])
 
     def draw_squiggles(self):
-        for i, day in enumerate(Weekday):
+        for i, day in enumerate(self.daynames):
             x0 = (i * (self.width / 7))
             x1 = ((i + 1) * (self.width / 7))
 
@@ -144,7 +152,7 @@ class DrawAgenda:
     def draw_weekdays(self):
         weekdays_text_y = self.header_height + (style.scale * 10)
         font = style.font(size=self.font_size)
-        for i, day in enumerate(Weekday):
+        for i, day in enumerate(self.daynames):
             x0 = (i * (self.width / 7))
             x1 = ((i + 1) * (self.width / 7))
 
@@ -237,14 +245,14 @@ class DrawAgenda:
                                                                   margin=style.scale * style.margin)
                         end_of_week_day = activity.begin_date.day + (6 - start_day)
                         params['date'] = (str(activity.begin_date.day), str(end_of_week_day))
-                        activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, cut='r', style=style,  **params)
+                        activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, cut='r', style=style, **params)
                     elif week == end_week:
                         start_of_week_day = activity.end_date.day - (end_day)
                         x0, x1, y0, y1 = self.calculate_card_size(start=(0, week), end=(end_day, week),
                                                                   margin=style.scale * style.margin)
                         params['date'] = (str(start_of_week_day), str(activity.end_date.day))
                         params['start'] = (0, start[1])
-                        activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, cut='l', style=style,  **params)
+                        activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, cut='l', style=style, **params)
                     else:
                         x0, x1, y0, y1 = self.calculate_card_size(start=(0, week), end=(6, week),
                                                                   margin=style.scale * style.margin)
@@ -252,19 +260,17 @@ class DrawAgenda:
                         start_of_week_day = activity.begin_date.day + 7 * nth_week - start_day
                         params['date'] = (str(start_of_week_day), str(start_of_week_day + 6))
                         params['start'] = (0, 6)
-                        activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, cut='lr', style=style,  **params)
+                        activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, cut='lr', style=style, **params)
         else:
-            activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, style=style,  **params)
+            activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, style=style, **params)
 
-        # if self.debug:
-        #     #raw rectangle
-        #     self.draw.rectangle([x0, y0, x1, y1], outline="blue")
-        #     #maximum size of card
-        #     self.draw.rectangle([x0-style.X_MAX, y0-style.Y_MIN, x1+style.X_MAX, y1+style.Y_MIN], outline="green")
-        #     #Safe rectangle to write in
-        #     self.draw.rectangle([x0-style.X_MIN, y0, x1+style.X_MIN, y1], outline="red")
-
-
+            # if self.debug:
+            #     #raw rectangle
+            #     self.draw.rectangle([x0, y0, x1, y1], outline="blue")
+            #     #maximum size of card
+            #     self.draw.rectangle([x0-style.X_MAX, y0-style.Y_MIN, x1+style.X_MAX, y1+style.Y_MIN], outline="green")
+            #     #Safe rectangle to write in
+            #     self.draw.rectangle([x0-style.X_MIN, y0, x1+style.X_MIN, y1], outline="red")
 
     def draw_internal_activity(self, start: Tuple[int, int], activity: Activity,
                                end: Tuple[int, int] = None) -> None:

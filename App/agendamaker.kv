@@ -87,6 +87,58 @@
 
                 AccordionItem:
                     collapse:True
+                    title: 'Agenda vertalen'
+                    id: accordion_translation_calendar
+
+                    BoxLayout:
+                        padding: 10
+                        orientation:'vertical'
+                        Label:
+                            text_size: self.size
+                            halign: 'left'
+                            text: "Engels"
+                            size_hint_y: None
+                            height: 40
+                        Switch:
+                            halign: 'left'
+                            size_hint_y: None
+                            height: 40
+                            id: language_switch
+                        Button:
+                            text: "Vertaal maand"
+                            on_press: root.translate_agenda()
+                            size_hint_y: None
+                            height: 40
+                        Label:
+                            text_size: self.size
+                            halign: 'left'
+                            text: "Vertaalde agenda intern"
+                            size_hint_y: None
+                            height: 40
+                        TextInput:
+                            id: translation_calendar_intern
+                            multiline:False
+                            size_hint_y: None
+                            height: 40
+                            hint_text:"Google Calendar ID"
+                            disabled: True
+                        Label:
+                            text_size: self.size
+                            halign: 'left'
+                            text: "Vertaalde agenda extern"
+                            size_hint_y: None
+                            height: 40
+                        TextInput:
+                            id: translation_calendar_extern
+                            multiline:False
+                            size_hint_y: None
+                            height: 40
+                            hint_text:"Google Calendar ID"
+                            disabled: True
+
+
+                AccordionItem:
+                    collapse:True
                     title: 'verjaardagen'
                     id: accordion_birthdays
                     BoxLayout:
@@ -106,7 +158,6 @@
                             multiline: False
                             hint_text:"Spreadsheet ID"
                             on_focus: root.check_focus(self, 'birthdays')
-
 
         BoxLayout:
             orientation: 'vertical'

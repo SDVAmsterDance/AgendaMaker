@@ -21,7 +21,7 @@ except ImportError:
 
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/calendar-python-quickstart.json
-SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
+SCOPES = 'https://www.googleapis.com/auth/calendar'
 CLIENT_SECRET_FILE = '../apis/api_keys/client_secret.json'
 APPLICATION_NAME = 'AmsterDance AgendaMaker'
 CREDENTIALS_FILE = 'calendar-python-agendamaker.json'
@@ -55,12 +55,7 @@ def get_credentials():
     return credentials
 
 
-def get_events(calendarId: str, start_date: datetime.date, end_date: datetime.date) -> List[Activity]:
-    """Shows basic usage of the Google Calendar API.
-
-    Creates a Google Calendar API service object and outputs a list of the next
-    10 events on the user's calendar.
-    """
+def get_google_events(calendarId: str, start_date: datetime.date, end_date: datetime.date):
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('calendar', 'v3', http=http)
@@ -73,10 +68,14 @@ def get_events(calendarId: str, start_date: datetime.date, end_date: datetime.da
         eventsResult = service.events().list(
             calendarId=calendarId, timeMin=start_date, timeMax=end_date, singleEvents=True,
             orderBy='startTime').execute()
-        events = eventsResult.get('items', [])
+        return eventsResult.get('items', [])
     except:
         print("invalid calendarID {}".format(calendarId))
         return []
+
+
+def get_events(calendarId: str, start_date: datetime.date, end_date: datetime.date) -> List[Activity]:
+    events = get_google_events(calendarId, start_date, end_date)
 
     activities = []
     for event in events:
@@ -90,7 +89,7 @@ def get_events(calendarId: str, start_date: datetime.date, end_date: datetime.da
         description = event.get('description', "").strip()
         m = re.match('\[.*\]', description)
         if m:
-            print("?",m.group(0))
+            print("?", m.group(0))
             for g in m.groups(0):
                 print("!", g)
 
@@ -111,11 +110,32 @@ def get_calendars() -> dict:
     while True:
         calendar_list = service.calendarList().list(pageToken=page_token).execute()
         for calendar_list_entry in calendar_list['items']:
-            calendars[calendar_list_entry['id']]=calendar_list_entry['summary']
+            calendars[calendar_list_entry['id']] = calendar_list_entry['summary']
         page_token = calendar_list.get('nextPageToken')
         if not page_token:
             break
     return calendars
+
+
+def copy_events(from_calendarId: str, to_calendarId: str, start_date, end_date):
+    def event_match(event, event_list):
+        for listed_event in event_list:
+            if event.get_google_event()['start']['dateTime'] == listed_event['start']['dateTime'] and \
+                   event.get_google_event()['end']['dateTime'] == listed_event['end']['dateTime']:
+                return True
+        return False
+
+    credentials = get_credentials()
+    http = credentials.authorize(httplib2.Http())
+    service = discovery.build('calendar', 'v3', http=http)
+    from_events = get_events(from_calendarId, start_date, end_date)
+    to_events = get_google_events(to_calendarId, start_date, end_date)
+    for event in from_events:
+        if not event_match(event, to_events):
+            print(event.get_google_event())
+            print("copying {} from {} to {}".format(event.name, from_calendarId, to_calendarId))
+            event = service.events().insert(calendarId=to_calendarId, body=event.get_google_event()).execute()
+            print(event.get('htmlLink'))
 
 
 def remove_credentials():
