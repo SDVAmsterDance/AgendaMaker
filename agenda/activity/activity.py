@@ -1,8 +1,9 @@
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 
-from agenda.month import Month
-from agenda.weekday import Weekday
+from agenda.month import Month, Maand
+from agenda.weekday import Weekday, Weekdag
 import re
+
 
 class Activity:
     _price_finder = re.compile('Prijs:\s*(€(\d+,\d{2}|\d+)/€(\d+,\d{2}|\d+))')
@@ -37,11 +38,17 @@ class Activity:
             self.price = "€{}/€{}".format(member, non_member)
         self._description = description
 
-    def get_day_name(self):
-        return Weekday(self.begin_date.weekday()).name
+    def get_day_name(self, lang="nl"):
+        if lang == "nl":
+            return Weekdag(self.begin_date.weekday()).name
+        if lang == "en":
+            return Weekday(self.begin_date.weekday()).name
 
-    def get_month_name(self):
-        return Month(self.begin_date.month).name
+    def get_month_name(self, lang="nl"):
+        if lang == "nl":
+            return Maand(self.begin_date.month).name
+        if lang == "en":
+            return Month(self.begin_date.month).name
 
     def is_multi_day(self) -> bool:
         if (self.end_date - self.begin_date).days > 0:
@@ -50,6 +57,27 @@ class Activity:
 
     def draw(self, day: int, week: int, month: int):
         pass
+
+    def get_google_event(self):
+
+        start_datetime = datetime.strptime("{} {}".format(self.begin_date, self.begin_time),
+                                           "%Y-%m-%d %H:%M").astimezone().isoformat()
+        end_datetime = datetime.strptime("{} {}".format(self.end_date, self.begin_time),
+                                         "%Y-%m-%d %H:%M").astimezone().isoformat()
+        event = {
+            'summary': self.name,
+            'location': self.location,
+            'description': self.description + "\n" + self.price,
+            'start': {
+                'dateTime': str(start_datetime),  # '{}T{}:00+00:00'.format(self.begin_date, self.begin_time),
+                'timeZone': 'Europe/Amsterdam',
+            },
+            'end': {
+                'dateTime': str(end_datetime),  # '{}T{}:00+00:00'.format(self.end_date, self.end_time),
+                'timeZone': 'Europe/Amsterdam',
+            },
+        }
+        return event
 
     def __str__(self):
         return "{} {} - {} {}\n{}: {}\n{}\n{}".format(self.begin_date,

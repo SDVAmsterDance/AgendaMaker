@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Month(Enum):
+class Maand(Enum):
     januari = 1
     februari = 2
     maart = 3
@@ -16,5 +16,16 @@ class Month(Enum):
     december = 12
 
 
-
-
+class Month(Enum):
+    january = 1
+    february = 2
+    march = 3
+    april = 4
+    may = 5
+    june = 6
+    july = 7
+    august = 8
+    september = 9
+    oktober = 10
+    november = 11
+    december = 12

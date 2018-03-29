@@ -2,6 +2,7 @@ import datetime
 import logging
 import os
 import win32api
+from calendar import monthrange
 from os.path import expanduser
 from os.path import join, isdir
 
@@ -17,7 +18,7 @@ from kivy.utils import platform
 
 from agenda.draw.draw_agenda import DrawAgenda
 from agenda.draw.draw_flyer import DrawFlyer
-from apis.google_calendar import get_calendars, remove_credentials
+from apis.google_calendar import get_calendars, remove_credentials, copy_events
 from apis.google_mail import create_message, send_message
 from birthday_email.email import Email
 
@@ -165,10 +166,10 @@ class MainScreen(Screen):
         self.month = now.month + 1
 
     def set_internal_activities(self, internal_activities):
-        self.internal_activities = set([x.strip() for x in internal_activities.split(",")])
+        self.internal_activities = set([x.strip() for x in internal_activities.split(",") if x.strip()])
 
     def set_external_activities(self, external_activities):
-        self.external_activities = set([x.strip() for x in external_activities.split(",")])
+        self.external_activities = set([x.strip() for x in external_activities.split(",") if x.strip()])
 
     def set_birthdays(self, birthdays):
         self.birthdays = set([x.strip() for x in birthdays.split(",")])
@@ -181,26 +182,32 @@ class MainScreen(Screen):
         self.persist.set_property("external_activities", self.ids.external_activities.text)
         self.persist.set_property("birthdays", self.ids.birthdays.text)
         self.persist.set_property("birthdays_template", self.ids.birthdays_template.text)
-        self.set_internal_activities(self.ids.internal_activities.text)
-        self.set_external_activities(self.ids.external_activities.text)
+        lang = 'nl'
+        if self.ids.language_switch.active:
+            self.set_internal_activities(self.ids.translation_calendar_intern.text)
+            self.set_external_activities(self.ids.translation_calendar_extern.text)
+            lang = 'en'
+        else:
+            self.set_internal_activities(self.ids.internal_activities.text)
+            self.set_external_activities(self.ids.external_activities.text)
         self.set_birthdays(self.ids.birthdays.text)
         if self.ids.tabs.current_tab.text == "Maand":
             draw = DrawAgenda(self.month, self.year, internal_activities=self.internal_activities,
-                              external_activities=self.external_activities)
+                              external_activities=self.external_activities, language=lang)
             fname = draw.draw_agenda()
             self.ids.agenda_image.source = fname
             self.ids.agenda_image.reload()
             self.persist.set_property("agenda_image", fname)
         if self.ids.tabs.current_tab.text == "Flyer":
             draw = DrawFlyer(self.month, self.year, internal_activities=self.internal_activities,
-                              external_activities=self.external_activities)
+                             external_activities=self.external_activities)
             fname = draw.draw_agenda()
             self.ids.flyer_image.source = fname
             self.ids.flyer_image.reload()
             self.persist.set_property("flyer_image", fname)
         elif self.ids.tabs.current_tab.text == "Verjaardagen":
             email = Email(birthdays=self.birthdays, internal_activities=self.internal_activities,
-                              external_activities=self.external_activities, template=self.ids.birthdays_template.text)
+                          external_activities=self.external_activities, template=self.ids.birthdays_template.text)
             self.ids.birthdays_mail.text = email.make_email(month=self.month, year=self.year)
 
     def update_calendars(self):
@@ -230,6 +237,23 @@ class MainScreen(Screen):
             checkbox = CalendarCheckBox(value=c, state=state)
             checkbox.bind(active=self.on_external_checkbox_active)
             self.ids.checkbox_grid_external_activities.add_widget(checkbox)
+
+    def translate_agenda(self):
+        self.ids.connection_dropdown.select("Updating")
+        self.persist.set_property("internal_activities", self.ids.internal_activities.text)
+        self.persist.set_property("external_activities", self.ids.external_activities.text)
+        self.set_internal_activities(self.ids.internal_activities.text)
+        self.set_external_activities(self.ids.external_activities.text)
+        start_date = datetime.date(self.year, self.month, 1)
+        end_date = datetime.date(self.year, self.month, monthrange(self.year, self.month)[1]) + datetime.timedelta(days=1)
+
+        for calendar_id in self.internal_activities:
+            copy_events(calendar_id, self.ids.translation_calendar_intern.text, start_date, end_date)
+
+        for calendar_id in self.external_activities:
+            copy_events(calendar_id, self.ids.translation_calendar_extern.text, start_date, end_date)
+
+        self.ids.connection_dropdown.select("Connection")
 
     def on_internal_checkbox_active(self, checkbox, value):
         if value:
@@ -292,6 +316,7 @@ class MainScreen(Screen):
             self._popup = MessagePopup(title="Error", content=content)
             self._popup.open()
 
+
 class AgendaMakerApp(App):
     current_action = ""
     rv_data = []
@@ -305,6 +330,8 @@ class AgendaMakerApp(App):
         self.root.main_screen.persist = self.persist
         self.root.main_screen.ids.internal_activities.text = self.persist.internal_activities
         self.root.main_screen.ids.external_activities.text = self.persist.external_activities
+        self.root.main_screen.ids.translation_calendar_intern.text = self.persist.internal_activities_en
+        self.root.main_screen.ids.translation_calendar_extern.text = self.persist.external_activities_en
         self.root.main_screen.ids.birthdays.text = self.persist.birthdays
         self.root.main_screen.ids.birthdays_template.text = self.persist.birthdays_template
         self.root.main_screen.internal_activities = set(
@@ -318,6 +345,8 @@ class AgendaMakerApp(App):
         self.root.main_screen.ids.flyer_image.source = self.persist.flyer_image
         self.root.main_screen.ids.flyer_image.reload()
         self.root.main_screen.update_calendars()
+        self.root.main_screen.ids.current_month.text = datetime.date(self.root.main_screen.year,
+                                                                     self.root.main_screen.month, 1).strftime("%B %Y")
 
 
 class Manager(ScreenManager):

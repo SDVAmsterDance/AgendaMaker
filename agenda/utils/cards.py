@@ -61,9 +61,9 @@ class Card(object):
         # print("Unused stuff: {}".format(kwargs))
 
         draw.polygon(shape.get_shape(), fill=background_color)
-        print(shape.get_scaled_height(), shape.x_max(), shape.x_min())
-        print(shape.get_scaled_height(), self.style.X_MAX, self.style.X_MIN)
-        print()
+        # print(shape.get_scaled_height(), shape.x_max(), shape.x_min())
+        # print(shape.get_scaled_height(), self.style.X_MAX, self.style.X_MIN)
+        # print()
 
         title_font_size = int(shape.get_scaled_height()/(5.3/self.style.scale))
         font = self.style.font(size=title_font_size)
