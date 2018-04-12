@@ -1,11 +1,13 @@
 import datetime
 from calendar import monthrange
 
-from agenda.activity_type import ActivityType
-from agenda.month import Maand, Month
+from jinja2 import Template
+
 from apis.google_calendar import get_events
 from apis.google_sheets import batch_get_sheet_values
-from jinja2 import Template, Environment
+from exports.agenda.activity_type import ActivityType
+from translatables.month import Maand, Month
+
 
 # TEMPLATE_ENVIRONMENT = Environment(keep_trailing_newline=True)
 

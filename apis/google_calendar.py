@@ -10,7 +10,7 @@ from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
 
-from agenda.activity.activity import Activity
+from exports.agenda.activity.activity import Activity
 
 try:
     import argparse

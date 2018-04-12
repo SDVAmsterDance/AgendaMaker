@@ -16,16 +16,18 @@ from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.utils import platform
 
-from agenda.draw.draw_agenda import DrawAgenda
-from agenda.draw.draw_flyer import DrawFlyer
 from apis.google_calendar import get_calendars, remove_credentials, copy_events
-from apis.google_mail import create_message, send_message, create_draft
-from birthday_email.email import Email
+from apis.google_mail import create_message, create_draft
+from exports.agenda.draw.draw_agenda import DrawAgenda
+from exports.agenda.draw.draw_flyer import DrawFlyer
+from exports.birthday_email.email import Email
+from exports.website.js_code_templates import default
+from translatables.month import Maand
 
 try:
     from App.utils.persist_properties import PersistProperties
 except:
-    from utils.persist_properties import PersistProperties
+    from translatables.persist_properties import PersistProperties
 
 from kivy.config import Config
 
@@ -164,6 +166,7 @@ class MainScreen(Screen):
         now = datetime.datetime.now()
         self.year = now.year
         self.month = now.month + 1
+        self.html_activities = []
 
     def set_internal_activities(self, internal_activities):
         self.internal_activities = set([x.strip() for x in internal_activities.split(",") if x.strip()])
@@ -177,7 +180,7 @@ class MainScreen(Screen):
     def dismiss_popup(self):
         self._popup.dismiss()
 
-    def make_calendar(self):
+    def make_calendar(self, force_month=False):
         self.persist.set_property("internal_activities", self.ids.internal_activities.text)
         self.persist.set_property("external_activities", self.ids.external_activities.text)
         self.persist.set_property("birthdays", self.ids.birthdays.text)
@@ -191,10 +194,11 @@ class MainScreen(Screen):
             self.set_internal_activities(self.ids.internal_activities.text)
             self.set_external_activities(self.ids.external_activities.text)
         self.set_birthdays(self.ids.birthdays.text)
-        if self.ids.tabs.current_tab.text == "Maand":
+        if self.ids.tabs.current_tab.text == "Maand" or force_month:
             draw = DrawAgenda(self.month, self.year, internal_activities=self.internal_activities,
                               external_activities=self.external_activities, language=lang)
             fname = draw.draw_agenda()
+            self.html_activities = draw.html_activities
             self.ids.agenda_image.source = fname
             self.ids.agenda_image.reload()
             self.persist.set_property("agenda_image", fname)
@@ -215,8 +219,15 @@ class MainScreen(Screen):
             internal_activities_en = self.internal_activities
             external_activities_en = self.external_activities
             email = Email(birthdays=self.birthdays, internal_activities=internal_activities,
-                          external_activities=external_activities, internal_activities_en=internal_activities_en, external_activities_en=external_activities_en, template=self.ids.birthdays_template.text)
+                          external_activities=external_activities, internal_activities_en=internal_activities_en,
+                          external_activities_en=external_activities_en, template=self.ids.birthdays_template.text)
             self.ids.birthdays_mail.text = email.make_email(month=self.month, year=self.year)
+
+    def export_website(self):
+        self.make_calendar(force_month=True)
+        js_code = default(self.month, str(self.year), self.html_activities)
+        print(js_code)
+
 
     def update_calendars(self):
         self.ids.connection_dropdown.select("Updating")
@@ -253,7 +264,8 @@ class MainScreen(Screen):
         self.set_internal_activities(self.ids.internal_activities.text)
         self.set_external_activities(self.ids.external_activities.text)
         start_date = datetime.date(self.year, self.month, 1)
-        end_date = datetime.date(self.year, self.month, monthrange(self.year, self.month)[1]) + datetime.timedelta(days=1)
+        end_date = datetime.date(self.year, self.month, monthrange(self.year, self.month)[1]) + datetime.timedelta(
+            days=1)
 
         for calendar_id in self.internal_activities:
             copy_events(calendar_id, self.ids.translation_calendar_intern.text, start_date, end_date)
@@ -323,8 +335,6 @@ class MainScreen(Screen):
             content = WarningPopup(message="Is de mail al gemaakt?", cancel=self.dismiss_popup)
             self._popup = MessagePopup(title="Error", content=content)
             self._popup.open()
-
-
 
 
 class AgendaMakerApp(App):

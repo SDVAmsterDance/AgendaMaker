@@ -1,8 +1,8 @@
 # Add paths to Python Path
 import sys
 
-from agenda.draw.draw_agenda import DrawAgenda
-from agenda.draw.draw_flyer import DrawFlyer
+from exports.agenda.draw import DrawAgenda
+from exports.agenda.draw import DrawFlyer
 
 sys.path.append('../')
 

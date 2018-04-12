@@ -4,12 +4,12 @@ from collections import defaultdict
 
 from PIL import Image, ImageDraw
 
-from agenda.activity.activity import Activity
-from agenda.activity_type import ActivityType
-from agenda.month import Maand, Month
-from agenda.utils import cards, text
-from agenda.utils import style as st
 from apis.google_calendar import get_events
+from exports.agenda.activity.activity import Activity
+from exports.agenda.activity_type import ActivityType
+from exports.agenda.utils import cards, text
+from exports.agenda.utils import style as st
+from translatables.month import Maand, Month
 
 style = st.FlyerStyle()
 

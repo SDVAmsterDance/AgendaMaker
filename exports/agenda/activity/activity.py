@@ -1,8 +1,8 @@
-from datetime import timedelta, datetime, timezone
-
-from agenda.month import Month, Maand
-from agenda.weekday import Weekday, Weekdag
 import re
+from datetime import timedelta, datetime
+
+from translatables.weekday import Weekdag, Weekday
+from translatables.month import Month, Maand
 
 
 class Activity:

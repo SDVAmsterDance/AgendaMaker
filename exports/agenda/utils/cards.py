@@ -1,9 +1,9 @@
-from agenda.activity.activity import Activity
-from agenda.utils import style as st
-
-from agenda.utils.shapes import *
+from typing import Union
 
 import numpy as np
+from exports.agenda.activity.activity import Activity
+from exports.agenda.utils import style as st
+from exports.agenda.utils.shapes import *
 
 
 class Card(object):

@@ -1,9 +1,9 @@
-from typing import Union, Tuple
+from typing import Tuple
 
 from PIL import ImageFont, ImageDraw
+from exports.agenda.utils.style import Style
 
-from agenda.utils import text
-from agenda.utils.style import Style
+from exports.agenda.utils import text
 
 
 class Shape:

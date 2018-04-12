@@ -4,14 +4,14 @@ from collections import defaultdict
 from typing import Tuple
 
 from PIL import Image, ImageDraw
+from translatables.month import Maand, Month
 
-from agenda.activity.activity import Activity
-from agenda.activity_type import ActivityType
-from agenda.month import Maand, Month
-from agenda.utils import style as st
-from agenda.utils import cards, text
-from agenda.weekday import Weekday, Weekdag
 from apis.google_calendar import get_events
+from exports.agenda.activity.activity import Activity
+from exports.agenda.activity_type import ActivityType
+from exports.agenda.utils import cards, text
+from exports.agenda.utils import style as st
+from translatables.weekday import Weekday, Weekdag
 
 style = st.AgendaStyle()
 
@@ -43,6 +43,8 @@ class DrawAgenda:
 
         self.card = cards.Card(style=style)
 
+        self.html_activities = []
+
         if language == 'nl':
             self.daynames = Weekdag
             self.monthname = Maand
@@ -52,6 +54,7 @@ class DrawAgenda:
         else:
             self.daynames = Weekdag
 
+        self.lang = language
 
     def _make_agenda_image(self):
         self.draw_header()
@@ -65,10 +68,11 @@ class DrawAgenda:
     def draw_agenda(self):
         self._make_agenda_image()
         # self.im.thumbnail((self.width/style.scale, self.height/style.scale), Image.BICUBIC)
-        date = datetime.date(self.year, self.month, 1)
-        month_text = date.strftime("%B%Y")
-        fname = '{}.png'.format(month_text)
-        self.im.save(fname, "png")
+        month_text = Maand(self.month).name+str(self.year)
+        if self.lang == 'en':
+            month_text += "EN"
+        fname = '{}.gif'.format(month_text)
+        self.im.save(fname, "gif")
         return fname
 
     def draw_header(self):
@@ -237,7 +241,7 @@ class DrawAgenda:
             if end_week == start_week:
                 x0, x1, y0, y1 = self.calculate_card_size(start=(start_day, start_week), end=(end_day, end_week),
                                                           margin=style.scale * style.margin)
-                activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, style=style, **params)
+                shape = activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, style=style, **params)
             else:
                 for week in range(start_week, end_week + 1):
                     if week < 0:
@@ -247,14 +251,14 @@ class DrawAgenda:
                                                                   margin=style.scale * style.margin)
                         end_of_week_day = activity.begin_date.day + (6 - start_day)
                         params['date'] = (str(activity.begin_date.day), str(end_of_week_day))
-                        activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, cut='r', style=style, **params)
+                        shape = activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, cut='r', style=style, **params)
                     elif week == end_week:
                         start_of_week_day = activity.end_date.day - (end_day)
                         x0, x1, y0, y1 = self.calculate_card_size(start=(0, week), end=(end_day, week),
                                                                   margin=style.scale * style.margin)
                         params['date'] = (str(start_of_week_day), str(activity.end_date.day))
                         params['start'] = (0, start[1])
-                        activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, cut='l', style=style, **params)
+                        shape = activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, cut='l', style=style, **params)
                     else:
                         x0, x1, y0, y1 = self.calculate_card_size(start=(0, week), end=(6, week),
                                                                   margin=style.scale * style.margin)
@@ -262,9 +266,9 @@ class DrawAgenda:
                         start_of_week_day = activity.begin_date.day + 7 * nth_week - start_day
                         params['date'] = (str(start_of_week_day), str(start_of_week_day + 6))
                         params['start'] = (0, 6)
-                        activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, cut='lr', style=style, **params)
+                        shape = activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, cut='lr', style=style, **params)
         else:
-            activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, style=style, **params)
+            shape = activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, style=style, **params)
 
             # if self.debug:
             #     #raw rectangle
@@ -273,6 +277,10 @@ class DrawAgenda:
             #     self.draw.rectangle([x0-style.X_MAX, y0-style.Y_MIN, x1+style.X_MAX, y1+style.Y_MIN], outline="green")
             #     #Safe rectangle to write in
             #     self.draw.rectangle([x0-style.X_MIN, y0, x1+style.X_MIN, y1], outline="red")
+        c_list = [round(item / style.scale) for sublist in shape.get_shape() for item in sublist]
+        direction = "right" if activity.begin_date.weekday() < 4 else "left"
+        html = {"description": activity.description.replace('\n', ' ').replace('\r', ''), "coords": c_list, "direction": direction}
+        self.html_activities.append(html)
 
     def draw_internal_activity(self, start: Tuple[int, int], activity: Activity,
                                end: Tuple[int, int] = None) -> None:
