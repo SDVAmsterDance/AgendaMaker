@@ -21,7 +21,7 @@ from apis.google_mail import create_message, create_draft
 from exports.agenda.draw.draw_agenda import DrawAgenda
 from exports.agenda.draw.draw_flyer import DrawFlyer
 from exports.birthday_email.email import Email
-from exports.website.js_code_templates import default
+from exports.website.export import add_activities
 from translatables.month import Maand
 
 try:
@@ -225,8 +225,7 @@ class MainScreen(Screen):
 
     def export_website(self):
         self.make_calendar(force_month=True)
-        js_code = default(self.month, str(self.year), self.html_activities)
-        print(js_code)
+        add_activities(self.month, str(self.year), self.html_activities)
 
 
     def update_calendars(self):

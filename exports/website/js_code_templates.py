@@ -41,5 +41,5 @@ def default(month, year, activities):
                                activity['description'])
     js_code += "'</map></div>';"
     js_code = js_code.format(month_var, prev_month_var, next_month_var)
-    return js_code
+    return month_var, js_code
 
