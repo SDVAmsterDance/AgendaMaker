@@ -213,7 +213,7 @@ class MainScreen(Screen):
             self.ids.flyer_image.source = fname
             self.ids.flyer_image.reload()
             return fname
-        elif self.ids.tabs.current_tab.text == "Verjaardagen":
+        elif self.ids.tabs.current_tab.text == "Email":
             self.set_internal_activities(self.ids.internal_activities.text)
             self.set_external_activities(self.ids.external_activities.text)
             internal_activities = self.internal_activities
