@@ -166,7 +166,7 @@ class MainScreen(Screen):
         now = datetime.datetime.now()
         self.year = now.year
         self.month = now.month + 1
-        self.html_activities = []
+        self.html_activities = {}
 
     def set_internal_activities(self, internal_activities):
         self.internal_activities = set([x.strip() for x in internal_activities.split(",") if x.strip()])
@@ -180,35 +180,39 @@ class MainScreen(Screen):
     def dismiss_popup(self):
         self._popup.dismiss()
 
-    def make_calendar(self, force_month=False):
+    def make_calendar(self, force_month=False, force_lang=None):
         self.persist.set_property("internal_activities", self.ids.internal_activities.text)
         self.persist.set_property("external_activities", self.ids.external_activities.text)
         self.persist.set_property("birthdays", self.ids.birthdays.text)
         self.persist.set_property("birthdays_template", self.ids.birthdays_template.text)
-        lang = 'nl'
-        if self.ids.language_switch.active:
-            self.set_internal_activities(self.ids.translation_calendar_intern.text)
-            self.set_external_activities(self.ids.translation_calendar_extern.text)
-            lang = 'en'
-        else:
-            self.set_internal_activities(self.ids.internal_activities.text)
-            self.set_external_activities(self.ids.external_activities.text)
         self.set_birthdays(self.ids.birthdays.text)
+        if not force_lang:
+            lang = 'nl'
+            if self.ids.language_switch.active:
+                self.set_internal_activities(self.ids.translation_calendar_intern.text)
+                self.set_external_activities(self.ids.translation_calendar_extern.text)
+                lang = 'en'
+            else:
+                self.set_internal_activities(self.ids.internal_activities.text)
+                self.set_external_activities(self.ids.external_activities.text)
+        else:
+            lang = force_lang
+
         if self.ids.tabs.current_tab.text == "Maand" or force_month:
             draw = DrawAgenda(self.month, self.year, internal_activities=self.internal_activities,
                               external_activities=self.external_activities, language=lang)
             fname = draw.draw_agenda()
-            self.html_activities = draw.html_activities
+            self.html_activities[lang] = draw.html_activities
             self.ids.agenda_image.source = fname
             self.ids.agenda_image.reload()
-            self.persist.set_property("agenda_image", fname)
+            return fname
         if self.ids.tabs.current_tab.text == "Flyer":
             draw = DrawFlyer(self.month, self.year, internal_activities=self.internal_activities,
                              external_activities=self.external_activities, language=lang)
             fname = draw.draw_agenda()
             self.ids.flyer_image.source = fname
             self.ids.flyer_image.reload()
-            self.persist.set_property("flyer_image", fname)
+            return fname
         elif self.ids.tabs.current_tab.text == "Verjaardagen":
             self.set_internal_activities(self.ids.internal_activities.text)
             self.set_external_activities(self.ids.external_activities.text)
@@ -224,9 +228,16 @@ class MainScreen(Screen):
             self.ids.birthdays_mail.text = email.make_email(month=self.month, year=self.year)
 
     def export_website(self):
-        self.make_calendar(force_month=True)
+        nl_image = self.make_calendar(force_month=True, force_lang='nl')
+        en_image = self.make_calendar(force_month=True, force_lang='en')
         add_activities(self.month, str(self.year), self.html_activities)
-
+        if self.ids.language_switch.active:
+            self.ids.agenda_image.source = en_image
+            self.ids.agenda_image.reload()
+        else:
+            self.ids.agenda_image.source = nl_image
+            self.ids.agenda_image.reload()
+        self.ids.connection_dropdown.select("Connection")
 
     def update_calendars(self):
         self.ids.connection_dropdown.select("Updating")

@@ -68,7 +68,7 @@ class DrawAgenda:
     def draw_agenda(self):
         self._make_agenda_image()
         # self.im.thumbnail((self.width/style.scale, self.height/style.scale), Image.BICUBIC)
-        month_text = Maand(self.month).name+str(self.year)
+        month_text = Maand(self.month).name + str(self.year)
         if self.lang == 'en':
             month_text += "EN"
         fname = '{}.gif'.format(month_text)
@@ -279,7 +279,15 @@ class DrawAgenda:
             #     self.draw.rectangle([x0-style.X_MIN, y0, x1+style.X_MIN, y1], outline="red")
         c_list = [round(item / style.scale) for sublist in shape.get_shape() for item in sublist]
         direction = "right" if activity.begin_date.weekday() < 4 else "left"
-        html = {"description": activity.description.replace('\n', ' ').replace('\r', ''), "coords": c_list, "direction": direction}
+        html = {"description": activity.description.replace('\n', ' ').replace('\r', ''),
+                "name": activity.name,
+                "date": activity.get_written_date(lang=self.lang, include_day=True),
+                "location": activity.location,
+                "begin_time": activity.begin_time,
+                "end_time": activity.end_time,
+                "price": activity.price,
+                "coords": c_list,
+                "direction": direction}
         self.html_activities.append(html)
 
     def draw_internal_activity(self, start: Tuple[int, int], activity: Activity,

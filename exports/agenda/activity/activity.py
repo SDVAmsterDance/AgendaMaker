@@ -38,11 +38,17 @@ class Activity:
             self.price = "€{}/€{}".format(member, non_member)
         self._description = description
 
-    def get_day_name(self, lang="nl"):
-        if lang == "nl":
-            return Weekdag(self.begin_date.weekday()).name
-        if lang == "en":
-            return Weekday(self.begin_date.weekday()).name
+    def get_day_name(self, lang="nl", take_end_day=False):
+        if take_end_day:
+            if lang == "nl":
+                return Weekdag(self.end_date.weekday()).name
+            if lang == "en":
+                return Weekday(self.end_date.weekday()).name
+        else:
+            if lang == "nl":
+                return Weekdag(self.begin_date.weekday()).name
+            if lang == "en":
+                return Weekday(self.begin_date.weekday()).name
 
     def get_month_name(self, lang="nl"):
         if lang == "nl":
@@ -50,12 +56,25 @@ class Activity:
         if lang == "en":
             return Month(self.begin_date.month).name
 
-    def get_written_date(self, lang='nl'):
+    def get_written_date(self, lang='nl', include_day=False):
         ordinal = lambda n: "%d%s" % (n, "tsnrhtdd"[(n / 10 % 10 != 1) * (n % 10 < 4) * n % 10::4])
-        if lang=='nl':
-            return "{} {}".format(self.begin_date.weekday(), Maand(self.begin_date.month).name)
+
+        begin = ""
+        day = "{} ".format(self.get_day_name(lang=lang)) if include_day else ""
+        if lang == 'nl':
+            begin = "{}{} {}".format(day, self.begin_date.day, Maand(self.begin_date.month).name)
         elif lang == 'en':
-            return "{} of {}".format(ordinal(self.begin_date.weekday()), Month(self.begin_date.month).name)
+            begin = "{}{} of {}".format(day, ordinal(self.begin_date.day), Month(self.begin_date.month).name)
+
+        if self.is_multi_day():
+            day = "{} the ".format(self.get_day_name(lang=lang, take_end_day=True)) if include_day else ""
+            if lang == 'nl':
+                end = "{}{} {}".format(day, self.end_date.day, Maand(self.end_date.month).name)
+                return "{} tot {}".format(begin, end)
+            elif lang == 'en':
+                end = "{}{} of {}".format(day, ordinal(self.end_date.day), Month(self.end_date.month).name)
+                return "{} till {}".format(begin, end)
+        return begin
 
     def is_multi_day(self) -> bool:
         if (self.end_date - self.begin_date).days > 0:

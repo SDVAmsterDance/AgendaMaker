@@ -2,20 +2,20 @@ from enum import Enum
 
 
 class Weekdag(Enum):
-    Maandag = 1
-    Dinsdag = 2
-    Woensdag = 3
-    Donderdag = 4
-    Vrijdag = 5
-    Zaterdag = 6
-    Zondag = 7
+    Maandag = 0
+    Dinsdag = 1
+    Woensdag = 2
+    Donderdag = 3
+    Vrijdag = 4
+    Zaterdag = 5
+    Zondag = 6
 
 
 class Weekday(Enum):
-    Monday = 1
-    Tuesday = 2
-    Wednesday = 3
-    Thursday = 4
-    Friday = 5
-    Saturday = 6
-    Sunday = 7
+    Monday = 0
+    Tuesday = 1
+    Wednesday = 2
+    Thursday = 3
+    Friday = 4
+    Saturday = 5
+    Sunday = 6

@@ -17,12 +17,23 @@ def _get_js_file():
 
 
 def add_activities(month, year, activities, fname="main2.js"):
-    month_var, code = templates.default(month=month, year=year, activities=activities)
+    nl_activities = activities['nl']
+    en_activities = activities['en']
+    complete_code = ""
+    month_var, partial_code = templates.activity(month=month, year=year, activities=nl_activities)
+    complete_code += partial_code + "\n"
+    _, partial_code = templates.activity_home(month=month, year=year, activities=nl_activities)
+    complete_code += partial_code + "\n"
+    _, partial_code = templates.activity(month=month, year=year, activities=en_activities, lang="EN")
+    complete_code += partial_code + "\n"
+    _, partial_code = templates.activity_home(month=month, year=year, activities=en_activities, lang="EN")
+    complete_code += partial_code
+
     _get_js_file()
     _remove_cur_month(month_var, fname)
 
     with open(fname, "a") as f:
-        f.write(code)
+        f.write(complete_code)
 
 
 def _remove_cur_month(month_var, fname):
@@ -41,6 +52,3 @@ def _remove_cur_month(month_var, fname):
 
     with open("main2.js", 'w') as f:
         f.write(new_file)
-
-
-
