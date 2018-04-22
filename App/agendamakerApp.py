@@ -334,7 +334,7 @@ class MainScreen(Screen):
         self.ids.connection_dropdown.select("Connection")
 
     def export_email(self):
-        if self.ids.tabs.current_tab.text == "Verjaardagen":
+        if self.ids.tabs.current_tab.text == "Email":
             self.ids.connection_dropdown.select("Exporting")
             message_text = self.ids.birthdays_mail.text
             message = create_message('Bestuur SDV AmsterDance <bestuur@sdvamsterdance.nl>', '',
