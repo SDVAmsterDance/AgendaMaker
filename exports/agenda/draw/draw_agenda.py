@@ -1,8 +1,10 @@
 import datetime
 import math
+import random
 from collections import defaultdict
 from typing import Tuple
 
+import aggdraw
 from PIL import Image, ImageDraw
 from translatables.month import Maand, Month
 
@@ -152,8 +154,30 @@ class DrawAgenda:
             x1 = ((i + 1) * (self.width / 7))
 
             text_x0 = ((x0 + x1) / 2)
-            self.draw.line([(text_x0, self.calendar_start_y), (text_x0, self.height - (style.scale * 50))],
-                           fill=style.color["black"])
+            self.draw_squiggle(x=text_x0,
+                               start_y=self.calendar_start_y,
+                               end_y=self.height - (style.scale * 50),
+                               diff=20, steps=20)
+
+    def draw_squiggle(self, x, start_y, end_y, diff=20, steps=5):
+        canvas = aggdraw.Draw(self.im)
+        pen = aggdraw.Pen("black")
+        path = aggdraw.Path()
+        path.moveto(x, start_y)
+        start = [x, start_y]
+        lenght = end_y - start_y
+        alternator = random.choice([-1, 1])
+        for i in range(steps):
+            new_start = [start[0], start_y + i * (lenght / steps)]
+            start = new_start
+            end = [start[0], start_y + (i + 1) * (lenght / steps)]
+            middle = [x + alternator * random.randint(diff / 5, diff), (start[1] + end[1]) / 2]
+            path.curveto(*start, *middle, *end)
+            path.moveto(*end)
+            alternator *= -1
+
+        canvas.path(path, path, pen)
+        canvas.flush()
 
     def draw_weekdays(self):
         weekdays_text_y = self.header_height + (style.scale * 10)
