@@ -7,7 +7,7 @@ from PIL import Image, ImageDraw
 from apis.google_calendar import get_events
 from exports.agenda.activity.activity import Activity
 from exports.agenda.activity_type import ActivityType
-from exports.agenda.utils import cards, text
+from exports.agenda.utils import cards, text, lines
 from exports.agenda.utils import style as st
 from translatables.month import Maand, Month
 
@@ -104,8 +104,12 @@ class DrawFlyer:
                         )
 
     def draw_squiggles(self):
-        self.draw.line([(self.width / 2, self.calendar_start_y), (self.width / 2, self.height - (style.scale * 50))],
-                       fill=style.color["black"])
+        lines.squiggle(self.im, x=self.width / 2,
+                     start_y=self.calendar_start_y,
+                     end_y=self.height - (style.scale * 50),
+                     diff=20, steps=20)
+        # self.draw.line([(self.width / 2, self.calendar_start_y), (self.width / 2, self.height - (style.scale * 50))],
+        #                fill=style.color["black"])
 
     def draw_activities(self, start_date, end_date):
         internal_events_calendar_ids = self.internal_activities
