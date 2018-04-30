@@ -6,8 +6,8 @@ from translatables.month import Month, Maand
 
 
 class Activity:
-    _price_finder = re.compile('Prijs:\s*(€(\d+,\d{2}|\d+)/€(\d+,\d{2}|\d+))')
-    _price_splitter = re.compile('€(\d+,\d{2}|\d+)/€(\d+,\d{2}|\d+)')
+    _price_finder = re.compile('(Prijs|Price):\s*(€(\d+,\d{2}|\d+|\?)/€(\d+,\d{2}|\d+|\?))')
+    _price_splitter = re.compile('€(\d+,\d{2}|\d+|\?)/€(\d+,\d{2}|\d+|\?)')
 
     def __init__(self, begin_time, end_time, begin_date, end_date, name, description, location, price="€0/€3"):
         # Catch faulty user behavior, 00:00 is no longer the same day
