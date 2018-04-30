@@ -18,6 +18,60 @@
     title: "Select File"
     size_hint: 0.9, 0.9
 
+<MessagePopup@Popup>:
+    size_hint: 0.6, 0.3
+
+<WarningPopup>:
+    id: warning_popup
+    size_hint: 0.3, 0.5
+
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        Label:
+            id: warning_popup_text
+            size_hint_y: 1
+            text: "A warning"
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+<PasswordPopup>:
+    id: password_popup
+    size_hint: 0.3, 0.5
+
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        Label:
+            id: password_popup_text
+            size_hint_y: None
+            height: 40
+            text: "Enter the password"
+        TextInput:
+            id: password_password
+            password:True
+            multiline:False
+            size_hint_y: None
+            height: 40
+            hint_text:"Password"
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Submit"
+                on_release: root.submit()
+
 <Row@BoxLayout>:
     canvas.before:
         Color:
@@ -382,29 +436,6 @@
                 text: "Select Calendars"
                 on_release: root.load(checkbox_grid)
 
-
-<MessagePopup@Popup>:
-    size_hint: 0.6, 0.3
-
-<WarningPopup>:
-    id: warning_popup
-    size_hint: 0.3, 0.5
-
-    BoxLayout:
-        size: root.size
-        pos: root.pos
-        orientation: "vertical"
-        Label:
-            id: warning_popup_text
-            size_hint_y: 1
-            text: "A warning"
-
-        BoxLayout:
-            size_hint_y: None
-            height: 30
-            Button:
-                text: "Cancel"
-                on_release: root.cancel()
 
 <CalendarId@TextInput>:
     multiline:True

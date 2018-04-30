@@ -56,6 +56,15 @@ class MessagePopup(Popup):
     pass
 
 
+class PasswordPopup(FloatLayout):
+    cancel = ObjectProperty(None)
+    submit = ObjectProperty(None)
+
+    def __init__(self, message=None, **kwargs):
+        super(PasswordPopup, self).__init__(**kwargs)
+        self.ids.password_popup_text.text = message
+
+
 class WarningPopup(FloatLayout):
     cancel = ObjectProperty(None)
 
@@ -228,16 +237,25 @@ class MainScreen(Screen):
             self.ids.birthdays_mail.text = email.make_email(month=self.month, year=self.year)
 
     def export_website(self):
+        def submit():
+            ftp_pass = self._popup.ids.password_password.text
+            add_activities(self.month, str(self.year), self.html_activities, ftp_pass=ftp_pass)
+            self._popup.dismiss()
+            del ftp_pass
+            self.ids.password_password.text = ""
+            if self.ids.language_switch.active:
+                self.ids.agenda_image.source = en_image
+                self.ids.agenda_image.reload()
+            else:
+                self.ids.agenda_image.source = nl_image
+                self.ids.agenda_image.reload()
+            self.ids.connection_dropdown.select("Connection")
+
         nl_image = self.make_calendar(force_month=True, force_lang='nl')
         en_image = self.make_calendar(force_month=True, force_lang='en')
-        add_activities(self.month, str(self.year), self.html_activities)
-        if self.ids.language_switch.active:
-            self.ids.agenda_image.source = en_image
-            self.ids.agenda_image.reload()
-        else:
-            self.ids.agenda_image.source = nl_image
-            self.ids.agenda_image.reload()
-        self.ids.connection_dropdown.select("Connection")
+        content = PasswordPopup(message="Wachtwoord voor de website", cancel=self.dismiss_popup, submit=submit)
+        self._popup = MessagePopup(title="Login", content=content)
+        self._popup.open()
 
     def update_calendars(self):
         self.ids.connection_dropdown.select("Updating")
@@ -342,7 +360,7 @@ class MainScreen(Screen):
             create_draft(user_id='me', message=message)
             self.ids.connection_dropdown.select("Connection")
         else:
-            content = WarningPopup(message="Is de mail al gemaakt?", cancel=self.dismiss_popup)
+            content = PasswordPopup(message="Is de mail al gemaakt?", cancel=self.dismiss_popup)
             self._popup = MessagePopup(title="Error", content=content)
             self._popup.open()
 

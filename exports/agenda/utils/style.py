@@ -27,7 +27,7 @@ class Style:
 class AgendaStyle(Style):
     style_type = "agenda"
     scale = 2
-    margin = 40
+    margin = 42
     Y_MIN = scale * 10
     X_MAX = scale * 45
     X_MIN = scale * 25

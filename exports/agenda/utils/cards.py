@@ -10,29 +10,30 @@ class Card(object):
     def __init__(self, style=st.AgendaStyle()):
         self.style = style
 
-    def _draw_all_dates(self, start, date, draw, width, y0, y1, background_color, text_color, font,
-                        date_shape_function):
+    def _draw_all_dates(self, start, date, draw, background_color, text_color, font,
+                        shape):
         # Draw date boxes on every day of the event
-        start_day = start[0]
         dates = [str(dat) for dat in np.arange(int(date[0]), int(date[1]) + 1, 1)]
-        margin = self.style.scale * 40
-        for i, date in enumerate(dates):
-            x = ((start_day + 1 + i) * (width / 7)) - margin
-            date_shape_function(draw, date, x, y0, y1, background_color, text_color, font)
+        margin = self.style.scale * self.style.margin
+        width = shape.x1 - shape.x0
+        card_width = (width - (2 + len(dates))*margin)/4
+        for i, date in enumerate(dates[:-1]):
+            x = start + margin + (i * (card_width + 2*margin))
+            shape.draw_date(draw, date, background_color, text_color, font, x=x)
 
-    def _draw_multi_day_details(self, draw, activity: Activity, font, text_color, spacing, x0, x1, y):
+    def _draw_multi_day_details(self, draw, activity: Activity, font, text_color, spacing, x0, x1, y, shape):
         print("run?")
         start_time = "{}-...".format(activity.begin_time)
         end_time = "...-{}".format(activity.end_time)
 
         # Draw the details in the event box
-        # draw.multiline_text((x0 - shape.x_min(), y), start_time, font=font, fill=text_color, spacing=spacing)
-        # draw.multiline_text((x1 - shape.x_min(), y), end_time, font=font, fill=text_color, spacing=spacing)
+        draw.multiline_text((x0 - shape.x_min(), y), start_time, font=font, fill=text_color, spacing=spacing)
+        draw.multiline_text((x1 - shape.x_min(), y), end_time, font=font, fill=text_color, spacing=spacing)
         if activity.location:
             y += (self.style.scale * 10)
-            # draw.multiline_text((x0 - shape.x_min(), y), activity.location, font=font, fill=text_color, spacing=spacing)
+            draw.multiline_text((x0 - shape.x_min(), y), activity.location, font=font, fill=text_color, spacing=spacing)
         y += (self.style.scale * 10)
-        # draw.multiline_text((x0 - shape.x_min(), y), activity.price, font=font, fill=text_color, spacing=spacing)
+        draw.multiline_text((x0 - shape.x_min(), y), activity.price, font=font, fill=text_color, spacing=spacing)
 
     def card(self, draw: ImageDraw = None, x0: Union[int, float] = 0, x1: Union[int, float] = 0,
              y0: Union[int, float] = 0, y1: Union[int, float] = 0, background_color: Tuple[int, int, int] = (0, 0, 0),
@@ -52,18 +53,13 @@ class Card(object):
         :param date_text_color:
         :param title:
         :param date:
-        :param start:
-        :param width:
-        :param activity: the event to draw
-        :param shape: a list of points (x, y) to draw a polygon
-        :param date_function: function reference that draws the dates
+        :param activity:
+        :param shape:
+        :param kwargs:
+        :return:
         """
-        # print("Unused stuff: {}".format(kwargs))
 
         draw.polygon(shape.get_shape(), fill=background_color)
-        # print(shape.get_scaled_height(), shape.x_max(), shape.x_min())
-        # print(shape.get_scaled_height(), self.style.X_MAX, self.style.X_MIN)
-        # print()
 
         title_font_size = int(shape.get_scaled_height()/(5.3/self.style.scale))
         font = self.style.font(size=title_font_size)
@@ -75,15 +71,12 @@ class Card(object):
         draw.multiline_text((x0 - shape.x_min(), y), title, font=font, fill=title_color, spacing=spacing)
 
         details_font_size = int(shape.get_scaled_height()/(7/self.style.scale))
-        # print(shape.get_scaled_height(), shape.get_height(), 2 * title_font_size + 3 * details_font_size)
         font = self.style.font(size=details_font_size)
 
         y += 2 * font.size
-
         # Single day vs multi day events
         if self.style.style_type == 'flyer' or date[0] == date[1]:
             # Draw date box
-            # shape.draw_date()
             shape.draw_date(draw, date[0], date_background_color, date_text_color, font)
 
             # date_function(draw, date[0], x1, y0, y1, date_background_color, date_text_color, font)
@@ -95,11 +88,12 @@ class Card(object):
             # Draw event details
             draw.multiline_text((x0 - shape.x_min(), y), details, font=font, fill=text_color, spacing=spacing)
         else:
-            # print(style.style_type, date)
             # Draw date boxes on every day of the event
-            # _draw_all_dates(start, date, draw, width, y0, y1, date_background_color, date_text_color, font,
-            #                 date_function)
-            self._draw_multi_day_details(draw, activity, font, text_color, spacing, x0, x1, y)
+
+            self._draw_all_dates(x0, date, draw, date_background_color, date_text_color, font, shape=shape)
+            # self._draw_all_dates(dates=date, draw=draw, background_color=date_background_color,
+            #                      text_color=date_text_color, font=font, shape=shape)
+            self._draw_multi_day_details(draw, activity, font, text_color, spacing, x0, x1, y,  shape)
 
     def internal_card(self, x1, x0, y1, y0, cut='', style=st.Style(), **kwargs) -> None:
         shape = Paralellogram(x0=x0, x1=x1, y0=y0, y1=y1, style=style).set_cut(cut)

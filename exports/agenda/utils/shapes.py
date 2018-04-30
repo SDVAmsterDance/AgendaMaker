@@ -74,21 +74,22 @@ class Paralellogram(Shape):
                           (self.x0 - self.x_min(), self.y0 - self.y_min())]
 
     def draw_date(self, draw: ImageDraw, date: str, background_color: Tuple[int, int, int],
-                  text_color: Tuple[int, int, int], font: ImageFont):
+                  text_color: Tuple[int, int, int], font: ImageFont, x=None):
         """Draw the date on a specified position x on the event card."""
+        x1 = x if x else self.x1
         card_height = (self.y1 + self.y_min()) - (self.y0 - self.y_min())
         slope_width = self.x_max() - self.x_min()
         date_width = font.size
-        draw.polygon([(self.x1 + self.x_max() - date_width, self.y0 - self.y_min()),
-                      (self.x1 + self.x_max(), self.y0 - self.y_min()),
-                      (self.x1 + self.x_max() - date_width / (card_height / slope_width),
+        draw.polygon([(x1 + self.x_max() - date_width, self.y0 - self.y_min()),
+                      (x1 + self.x_max(), self.y0 - self.y_min()),
+                      (x1 + self.x_max() - date_width / (card_height / slope_width),
                        self.y0 - self.y_min() + date_width),
-                      (self.x1 + self.x_max() - date_width, self.y0 - self.y_min() + date_width)],
+                      (x1 + self.x_max() - date_width, self.y0 - self.y_min() + date_width)],
                      fill=background_color)
 
         text_x0 = text.vertical_center_text(date, font,
-                                            x_min=self.x1 + self.x_max() - date_width,
-                                            x_max=self.x1 + self.x_max() - (self.style.scale * 3))
+                                            x_min=x1 + self.x_max() - date_width,
+                                            x_max=x1 + self.x_max() - (self.style.scale * 3))
 
         draw.text((text_x0, self.y0 - self.y_min()),
                   date,
@@ -108,24 +109,28 @@ class Hexagon(Shape):
                           (self.x0 - self.x_min(), self.y0 - self.y_min())]
 
     def draw_date(self, draw: ImageDraw, date: str, background_color: Tuple[int, int, int],
-                  text_color: Tuple[int, int, int], font: ImageFont):
+                  text_color: Tuple[int, int, int], font: ImageFont, x=None):
         """Draw the date on a specified position x on the event card."""
+        x1 = x if x else self.x1
+        if x:
+            print(x, self.x1)
+
         card_horizontal_middle = (self.y1 + self.y0) / 2
         half_card_height = card_horizontal_middle - (self.y0 - self.y_min())
         # red date
         slope_width = self.x_max() - self.x_min()
         half_date_height = font.getsize(date)[1] / 2
         intersect = (half_date_height / half_card_height) * slope_width
-        draw.polygon([(self.x1 + self.x_min(), card_horizontal_middle - half_date_height),
-                      (self.x1 + self.x_max() - intersect, card_horizontal_middle - half_date_height),
-                      (self.x1 + self.x_max(), card_horizontal_middle),
-                      (self.x1 + self.x_max() - intersect, card_horizontal_middle + half_date_height),
-                      (self.x1 + self.x_min(), card_horizontal_middle + half_date_height)],
+        draw.polygon([(x1 + self.x_min(), card_horizontal_middle - half_date_height),
+                      (x1 + self.x_max() - intersect, card_horizontal_middle - half_date_height),
+                      (x1 + self.x_max(), card_horizontal_middle),
+                      (x1 + self.x_max() - intersect, card_horizontal_middle + half_date_height),
+                      (x1 + self.x_min(), card_horizontal_middle + half_date_height)],
                      fill=background_color)
 
         text_x0 = text.vertical_center_text(date, font,
-                                            x_min=self.x1 + self.x_min(),
-                                            x_max=self.x1 + self.x_max() - (self.style.scale * 3))
+                                            x_min=x1 + self.x_min(),
+                                            x_max=x1 + self.x_max() - (self.style.scale * 3))
 
         draw.text((text_x0, card_horizontal_middle - half_date_height - (self.style.scale * 1)),
                   date,
