@@ -159,7 +159,7 @@ class DrawAgenda:
             squiggle(self.im, x=text_x0,
                      start_y=self.calendar_start_y,
                      end_y=self.height - (style.scale * 50),
-                     diff=20, steps=20)
+                     diff=random.randint(18,22), steps=random.randint(18,30))
 
     def draw_weekdays(self):
         weekdays_text_y = self.header_height + (style.scale * 10)
@@ -275,14 +275,6 @@ class DrawAgenda:
                         shape = activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, cut='lr', style=style, **params)
         else:
             shape = activity_shape(x0=x0, x1=x1, y0=y0, y1=y1, style=style, **params)
-
-            # if self.debug:
-            #     #raw rectangle
-            #     self.draw.rectangle([x0, y0, x1, y1], outline="blue")
-            #     #maximum size of card
-            #     self.draw.rectangle([x0-style.X_MAX, y0-style.Y_MIN, x1+style.X_MAX, y1+style.Y_MIN], outline="green")
-            #     #Safe rectangle to write in
-            #     self.draw.rectangle([x0-style.X_MIN, y0, x1+style.X_MIN, y1], outline="red")
         c_list = [round(item / style.scale) for sublist in shape.get_shape() for item in sublist]
         direction = "right" if activity.begin_date.weekday() < 4 else "left"
         html = {"description": activity.description.replace('\n', ' ').replace('\r', ''),

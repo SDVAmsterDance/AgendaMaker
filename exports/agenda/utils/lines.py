@@ -14,7 +14,7 @@ def squiggle(im, x, start_y, end_y, diff=20, steps=5):
         new_start = [start[0], start_y + i * (lenght / steps)]
         start = new_start
         end = [start[0], start_y + (i + 1) * (lenght / steps)]
-        middle = [x + alternator * random.randint(diff / 5, diff), (start[1] + end[1]) / 2]
+        middle = [x + alternator * random.randint(int(diff / 5), diff), (start[1] + end[1]) / 2]
         path.curveto(*start, *middle, *end)
         path.moveto(*end)
         alternator *= -1
