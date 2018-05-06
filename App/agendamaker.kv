@@ -1,5 +1,6 @@
 #:kivy 1.1.0
 #:import lv kivy.uix.listview
+#:import lv kivy.uix.scrollview
 #:import la kivy.adapters.listadapter
 #:import da kivy.adapters.dictadapter
 
@@ -212,6 +213,102 @@
                             multiline: False
                             hint_text:"Spreadsheet ID"
                             on_focus: root.check_focus(self, 'birthdays')
+                AccordionItem:
+                    collapse:True
+                    title: 'Website'
+                    id: accordion_website
+                    ScrollView:
+                        do_scroll_x: False
+                        do_scroll_y: True
+                        BoxLayout:
+                            id:accordion_website_box
+                            padding: 10
+                            orientation:'vertical'
+                            size_hint_y:None
+                            height:420
+                            Label:
+                                text_size: self.size
+                                halign: 'left'
+                                text: "Server"
+                                size_hint_y: None
+                                height: 30
+                            TextInput:
+                                id: website_server
+                                size_hint_y: None
+                                height: 40
+                                padding: dp(10), dp(10), 0, 0
+
+                                multiline: False
+                                hint_text:"ftp.domain.com"
+    #                            on_focus: root.check_focus(self, 'birthdays')
+                            Label:
+                                text_size: self.size
+                                halign: 'left'
+                                text: "Port"
+                                size_hint_y: None
+                                height: 30
+                            TextInput:
+                                id: website_port
+                                size_hint_y: None
+                                height: 40
+                                padding: dp(10), dp(10), 0, 0
+                                multiline: False
+                                text:"21"
+                                hint_text:"port"
+    #                            on_focus: root.check_focus(self, 'birthdays')
+                            Label:
+                                text_size: self.size
+                                halign: 'left'
+                                text: "Directory"
+                                size_hint_y: None
+                                height: 30
+                            TextInput:
+                                id: website_path
+                                size_hint_y: None
+                                height: 40
+                                padding: dp(10), dp(10), 0, 0
+
+                                multiline: False
+                                hint_text:"/path/to/dir/on/server"
+    #                            on_focus: root.check_focus(self, 'birthdays')
+                            Label:
+                                text_size: self.size
+                                halign: 'left'
+                                text: "JS file name"
+                                size_hint_y: None
+                                height: 30
+                            TextInput:
+                                id: website_js_fname
+                                size_hint_y: None
+                                height: 40
+                                padding: dp(10), dp(10), 0, 0
+                                multiline: False
+
+                            Label:
+                                text_size: self.size
+                                halign: 'left'
+                                text: "Username"
+                                size_hint_y: None
+                                height: 30
+                            TextInput:
+                                id: website_username
+                                size_hint_y: None
+                                height: 40
+                                padding: dp(10), dp(10), 0, 0
+                                multiline: False
+                                hint_text:"username"
+    #                            on_focus: root.check_focus(self, 'birthdays')
+                            Label:
+                                text_size: self.size
+                                halign: 'left'
+                                text: "Upload"
+                                size_hint_y: None
+                                height: 30
+                            Switch:
+                                halign: 'left'
+                                size_hint_y: None
+                                height: 40
+                                id: upload_switch
 
         BoxLayout:
             orientation: 'vertical'
@@ -277,7 +374,7 @@
 
                     Button:
                         id: connection_btn
-                        text: 'Connection'
+                        text: 'Menu'
                         on_release: connection_dropdown.open(self)
     DropDown:
         id: connection_dropdown
@@ -308,9 +405,15 @@
             on_release: root.export_website()
 
         Button:
-            text: 'Export print'
+            text: 'Default settings'
             size_hint_y: None
             height: '48dp'
+#            on_release: root.export_website()
+
+#        Button:
+#            text: 'Export print'
+#            size_hint_y: None
+#            height: '48dp'
 #            on_release: root.update_calendars()
 
 

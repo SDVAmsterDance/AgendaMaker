@@ -21,7 +21,7 @@ from apis.google_mail import create_message, create_draft
 from exports.agenda.draw.draw_agenda import DrawAgenda
 from exports.agenda.draw.draw_flyer import DrawFlyer
 from exports.birthday_email.email import Email
-from exports.website.export import add_activities
+from exports.website.export import Website
 from translatables.month import Maand
 
 try:
@@ -176,6 +176,7 @@ class MainScreen(Screen):
         self.year = now.year
         self.month = now.month + 1
         self.html_activities = {}
+        self.website = None
 
     def set_internal_activities(self, internal_activities):
         self.internal_activities = set([x.strip() for x in internal_activities.split(",") if x.strip()])
@@ -208,48 +209,68 @@ class MainScreen(Screen):
             lang = force_lang
 
         if self.ids.tabs.current_tab.text == "Maand" or force_month:
-            draw = DrawAgenda(self.month, self.year, internal_activities=self.internal_activities,
-                              external_activities=self.external_activities, language=lang)
-            fname = draw.draw_agenda()
-            self.html_activities[lang] = draw.html_activities
-            self.ids.agenda_image.source = fname
-            self.ids.agenda_image.reload()
-            return fname
+            return self.make_agenda(lang)
         if self.ids.tabs.current_tab.text == "Flyer":
-            draw = DrawFlyer(self.month, self.year, internal_activities=self.internal_activities,
-                             external_activities=self.external_activities, language=lang)
-            fname = draw.draw_agenda()
-            self.ids.flyer_image.source = fname
-            self.ids.flyer_image.reload()
-            return fname
+            return self.make_flyer(lang)
         elif self.ids.tabs.current_tab.text == "Email":
-            self.set_internal_activities(self.ids.internal_activities.text)
-            self.set_external_activities(self.ids.external_activities.text)
-            internal_activities = self.internal_activities
-            external_activities = self.external_activities
-            self.set_internal_activities(self.ids.translation_calendar_intern.text)
-            self.set_external_activities(self.ids.translation_calendar_extern.text)
-            internal_activities_en = self.internal_activities
-            external_activities_en = self.external_activities
-            email = Email(birthdays=self.birthdays, internal_activities=internal_activities,
-                          external_activities=external_activities, internal_activities_en=internal_activities_en,
-                          external_activities_en=external_activities_en, template=self.ids.birthdays_template.text)
-            self.ids.birthdays_mail.text = email.make_email(month=self.month, year=self.year)
+            self.make_email()
+
+    def make_agenda(self, lang):
+        draw = DrawAgenda(self.month, self.year, internal_activities=self.internal_activities,
+                          external_activities=self.external_activities, language=lang)
+        fname = draw.draw_agenda()
+        self.html_activities[lang] = draw.html_activities
+        self.ids.agenda_image.source = fname
+        self.ids.agenda_image.reload()
+        return fname
+
+    def make_flyer(self, lang):
+        draw = DrawFlyer(self.month, self.year, internal_activities=self.internal_activities,
+                         external_activities=self.external_activities, language=lang)
+        fname = draw.draw_agenda()
+        self.ids.flyer_image.source = fname
+        self.ids.flyer_image.reload()
+        return fname
+
+    def make_email(self):
+        self.set_internal_activities(self.ids.internal_activities.text)
+        self.set_external_activities(self.ids.external_activities.text)
+        internal_activities = self.internal_activities
+        external_activities = self.external_activities
+        self.set_internal_activities(self.ids.translation_calendar_intern.text)
+        self.set_external_activities(self.ids.translation_calendar_extern.text)
+        internal_activities_en = self.internal_activities
+        external_activities_en = self.external_activities
+        email = Email(birthdays=self.birthdays, internal_activities=internal_activities,
+                      external_activities=external_activities, internal_activities_en=internal_activities_en,
+                      external_activities_en=external_activities_en, template=self.ids.birthdays_template.text)
+        self.ids.birthdays_mail.text = email.make_email(month=self.month, year=self.year)
 
     def export_website(self):
         def submit():
-            ftp_pass = self._popup.ids.password_password.text
-            add_activities(self.month, str(self.year), self.html_activities, ftp_pass=ftp_pass)
-            self._popup.dismiss()
-            del ftp_pass
-            self.ids.password_password.text = ""
-            if self.ids.language_switch.active:
-                self.ids.agenda_image.source = en_image
-                self.ids.agenda_image.reload()
+            ftp_pass = self._popup.content.ids.password_password.text
+            if not self.website:
+                self.website = Website(server=self.ids.website_server.text, port=self.ids.website_port.text,
+                                       path=self.ids.website_path.text, user=self.ids.website_username.text)
+
+            resp = self.website.add_activities(self.month, str(self.year), self.html_activities,
+                                               ftp_pass=ftp_pass,
+                                               upload=self.ids.upload_switch.active,
+                                               fname=self.ids.website_js_fname.text)
+            if not resp:
+                self._popup.dismiss()
+                del ftp_pass
+                self._popup.content.ids.password_password.text = ""
+                if self.ids.language_switch.active:
+                    self.ids.agenda_image.source = en_image
+                    self.ids.agenda_image.reload()
+                else:
+                    self.ids.agenda_image.source = nl_image
+                    self.ids.agenda_image.reload()
+                self.ids.connection_dropdown.select("Menu")
             else:
-                self.ids.agenda_image.source = nl_image
-                self.ids.agenda_image.reload()
-            self.ids.connection_dropdown.select("Connection")
+                self._popup.content.ids.password_popup_text.text = resp
+                self._popup.content.ids.password_popup_text.color = (1, 0, 0, 1)
 
         nl_image = self.make_calendar(force_month=True, force_lang='nl')
         en_image = self.make_calendar(force_month=True, force_lang='en')
@@ -261,7 +282,7 @@ class MainScreen(Screen):
         self.ids.connection_dropdown.select("Updating")
         self.calendar_dict = get_calendars()
         self.show_calendars()
-        self.ids.connection_dropdown.select("Connection")
+        self.ids.connection_dropdown.select("Menu")
 
     def show_calendars(self):
         self.ids.checkbox_grid_internal_activities.clear_widgets()
@@ -301,7 +322,7 @@ class MainScreen(Screen):
         for calendar_id in self.external_activities:
             copy_events(calendar_id, self.ids.translation_calendar_extern.text, start_date, end_date)
 
-        self.ids.connection_dropdown.select("Connection")
+        self.ids.connection_dropdown.select("Menu")
 
     def on_internal_checkbox_active(self, checkbox, value):
         if value:
@@ -349,7 +370,7 @@ class MainScreen(Screen):
     def logout(self):
         self.ids.connection_dropdown.select("Logging out")
         remove_credentials()
-        self.ids.connection_dropdown.select("Connection")
+        self.ids.connection_dropdown.select("Menu")
 
     def export_email(self):
         if self.ids.tabs.current_tab.text == "Email":
@@ -358,7 +379,7 @@ class MainScreen(Screen):
             message = create_message('Bestuur SDV AmsterDance <bestuur@sdvamsterdance.nl>', '',
                                      'Agenda AmsterDance ' + Maand(self.month).name, message_text=message_text)
             create_draft(user_id='me', message=message)
-            self.ids.connection_dropdown.select("Connection")
+            self.ids.connection_dropdown.select("Menu")
         else:
             content = PasswordPopup(message="Is de mail al gemaakt?", cancel=self.dismiss_popup)
             self._popup = MessagePopup(title="Error", content=content)
@@ -376,6 +397,8 @@ class AgendaMakerApp(App):
     def on_start(self, **kwargs):
         self.persist = PersistProperties()
         self.root.main_screen.persist = self.persist
+
+        # Birthdays and calendars
         self.root.main_screen.ids.internal_activities.text = self.persist.internal_activities
         self.root.main_screen.ids.external_activities.text = self.persist.external_activities
         self.root.main_screen.ids.translation_calendar_intern.text = self.persist.internal_activities_en
@@ -388,11 +411,18 @@ class AgendaMakerApp(App):
             [x.strip() for x in self.persist.external_activities.split(",")])
         self.root.main_screen.birthdays = set(
             [x.strip() for x in self.persist.birthdays.split(",")])
-        self.root.main_screen.ids.agenda_image.source = self.persist.agenda_image
+
+        # images
+        m_name = Maand(self.root.main_screen.month).name + str(self.root.main_screen.year) + ".gif"
+        self.root.main_screen.ids.agenda_image.source = m_name
         self.root.main_screen.ids.agenda_image.reload()
-        self.root.main_screen.ids.flyer_image.source = self.persist.flyer_image
+        self.root.main_screen.ids.flyer_image.source = "flyer-" + m_name
         self.root.main_screen.ids.flyer_image.reload()
+
+        # make sure the calendars are up to date
         self.root.main_screen.update_calendars()
+
+        # display the current month
         self.root.main_screen.ids.current_month.text = datetime.date(self.root.main_screen.year,
                                                                      self.root.main_screen.month, 1).strftime("%B %Y")
 

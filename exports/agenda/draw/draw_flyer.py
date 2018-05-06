@@ -64,8 +64,8 @@ class DrawFlyer:
         # self.im.thumbnail((self.width/style.scale, self.height/style.scale), Image.BICUBIC)
         date = datetime.date(self.year, self.month, 1)
         month_text = date.strftime("%B%Y")
-        fname = 'flyer-{}.png'.format(month_text)
-        self.im.save(fname, "png")
+        fname = 'flyer-{}.gif'.format(month_text)
+        self.im.save(fname, "gif")
         return fname
 
     def draw_header(self):

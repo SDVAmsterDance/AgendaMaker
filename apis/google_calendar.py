@@ -57,8 +57,11 @@ def get_credentials():
 
 def get_google_events(calendarId: str, start_date: datetime.date, end_date: datetime.date):
     credentials = get_credentials()
-    http = credentials.authorize(httplib2.Http())
-    service = discovery.build('calendar', 'v3', http=http)
+    try:
+        http = credentials.authorize(httplib2.Http())
+        service = discovery.build('calendar', 'v3', http=http)
+    except TimeoutError as e:
+        return str(e)
 
     start_date = datetime.datetime.combine(
         start_date, datetime.datetime.min.time()).isoformat() + 'Z'
